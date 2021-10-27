@@ -21,8 +21,8 @@ mvn clean install
 #### Execute securely in PowerShell
 - I noticed that my desired behaviour worked so far when I open Powershell from Windows Terminal
 - Open PowerShell
-- Navigate to <your local path>\manager
-- Type: `.\run.bat` into your PowerShell and press Enter
+- Navigate to `<your local path>\manager`
+- Type: `./run.bat` into your PowerShell and press Enter
 - Follow Options provided 
 
 #### Alternative - Run directly from within CMD
