@@ -25,8 +25,11 @@ mvn clean install
 - Type: `./run.bat` into your PowerShell and press Enter
 - Follow Options provided 
 
-#### Alternative - Run directly from within CMD
+#### Alternative - Run directly from within CMD / Bash
 ##### Attention - some features, such as color change of output text, do not work within CMD prompt (Vulnerable to screen shot hacks)
+
+- Execute `run.bat` or `run.sh`
+- Or alternatively
 Then navigate to:
 `<your drive path>\manager\target`
 
