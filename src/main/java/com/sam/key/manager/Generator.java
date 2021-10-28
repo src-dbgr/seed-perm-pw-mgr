@@ -82,21 +82,23 @@ public class Generator {
 			long seed = Long.parseLong(new String(seedC));
 			randomizeReferenceAlphabet(seed);
 		} catch (Exception e) {
-			if (e instanceof NullPointerException) {
+			if (e instanceof NullPointerException && seedC == null) {
 				System.out.println("Masking input not supported.. Continue with default Invocation");
+				alphabetSeedRequestOnNull(br);
 			} else {
 				e.printStackTrace();
 			}
-			if (seedC == null) {
-				try {
-					System.out.println("Enter Alphabet Permutation Seed: ");
-					String seedS = br.readLine();
-					long seed = Long.parseLong(seedS);
-					randomizeReferenceAlphabet(seed);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
+		}
+	}
+
+	static void alphabetSeedRequestOnNull(BufferedReader br) {
+		try {
+			System.out.println("Enter Alphabet Permutation Seed: ");
+			String seedS = br.readLine();
+			long seed = Long.parseLong(seedS);
+			randomizeReferenceAlphabet(seed);
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 
@@ -118,27 +120,29 @@ public class Generator {
 				printNormal(generateByIndices(indices, pin, blacked));
 			}
 		} catch (Exception e) {
-			if (e instanceof NullPointerException) {
+			if (e instanceof NullPointerException && readPin == null) {
 				System.out.println("Masking input not supported.. Continue with default Invocation");
+				interactivePWRetrieveOnNull(br, blacked, indices);
 			} else {
 				System.out.println("Error occured on retrieving PW, check Stack Trace for Details");
 				e.printStackTrace();
 			}
-			if (readPin == null) {
-				try {
-					System.out.println("Enter Pin:");
-					String pin = br.readLine();
-					long seed = Long.parseLong(pin);
-					if (blacked) {
-						printBlacked(generateByIndices(indices, seed, blacked));
-					} else {
-						printNormal(generateByIndices(indices, seed, blacked));
-					}
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
 			System.exit(-1);
+		}
+	}
+
+	static void interactivePWRetrieveOnNull(BufferedReader br, boolean blacked, int[] indices) {
+		try {
+			System.out.println("Enter Pin:");
+			String pin = br.readLine();
+			long seed = Long.parseLong(pin);
+			if (blacked) {
+				printBlacked(generateByIndices(indices, seed, blacked));
+			} else {
+				printNormal(generateByIndices(indices, seed, blacked));
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 
@@ -176,23 +180,26 @@ public class Generator {
 			long pin = Long.parseLong(new String(readPin));
 			printMultipleRandomPWs(min, max, numPws, pin, anonymous, blacked);
 		} catch (Exception e) {
-			if (e instanceof NullPointerException) {
+			if (e instanceof NullPointerException && readPin == null) {
 				System.out.println("Masking input not supported.. Continue with default Invocation");
+				interactiveGeneratorOnNull(br, min, max, numPws, anonymous, blacked);
 			} else {
 				System.out.println("Error occured on interactive PW generation, check Stack Trace for Details");
 				e.printStackTrace();
 			}
-			if (readPin == null) {
-				try {
-					System.out.println("Enter Pin");
-					String pin = br.readLine();
-					long seed = Long.parseLong(pin);
-					printMultipleRandomPWs(min, max, numPws, seed, anonymous, blacked);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
 			System.exit(-1);
+		}
+	}
+
+	static void interactiveGeneratorOnNull(BufferedReader br, int min, int max, int numPws, boolean anonymous,
+			boolean blacked) {
+		try {
+			System.out.println("Enter Pin");
+			String pin = br.readLine();
+			long seed = Long.parseLong(pin);
+			printMultipleRandomPWs(min, max, numPws, seed, anonymous, blacked);
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 
