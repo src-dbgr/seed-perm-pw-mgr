@@ -80,7 +80,8 @@ public class Generator {
 		try {
 			seedC = System.console().readPassword("Enter Alphabet Permutation Seed: \n");
 			long seed = Long.parseLong(new String(seedC));
-			randomizeReferenceAlphabet(seed);
+//			randomizeReferenceAlphabet(seed);
+			referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
 		} catch (Exception e) {
 			if (e instanceof NullPointerException && seedC == null) {
 				System.out.println("Masking input not supported.. Continue with default Invocation");
@@ -96,7 +97,8 @@ public class Generator {
 			System.out.println("Enter Alphabet Permutation Seed: ");
 			String seedS = br.readLine();
 			long seed = Long.parseLong(seedS);
-			randomizeReferenceAlphabet(seed);
+//			randomizeReferenceAlphabet(seed);
+			referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -204,43 +206,26 @@ public class Generator {
 	}
 
 	static int[] parseStringToIntArr(String word) {
-		String[] stringIndices = word.replaceAll("\\{", "").replaceAll("\\}", "").replaceAll("\\s", "").split(",");
+		String[] stringIndices = word.replaceAll("\\{", "").replaceAll("\\}", "").replaceAll("\\[", "")
+				.replaceAll("\\]", "").replaceAll("\\s", "").split(",");
 		int[] indices = new int[stringIndices.length];
 
 		for (int i = 0; i < indices.length; i++) {
-			try {
-				indices[i] = Integer.parseInt(stringIndices[i]);
-			} catch (NumberFormatException nfe) {
-				nfe.printStackTrace();
-			}
+			indices[i] = Integer.parseInt(stringIndices[i]);
 		}
 		return indices;
 	}
 
-	// helper to randomize Alphabet
-	// Prints a shuffled Alphabet
-	static void randomizeAlphabet(long seed) {
-		alphabet = referenceAlphabet;
-		List<Character> listC = new ArrayList<>();
-		for (char c : alphabet) {
-			listC.add(c);
+	static char[] randomizeAlphabet(long seed, char[] alphabet) {
+		char[] arr = alphabet;
+		List<Character> tempList = new ArrayList<>();
+		for (char c : arr) {
+			tempList.add(c);
 		}
-		Collections.shuffle(listC, new Random(seed));
-		String str = listC.toString().replaceAll(",", "");
-		alphabet = str.substring(1, str.length() - 1).replaceAll(" ", "").toCharArray();
-//		System.out.println("SIZE: " + alphabet.length);
-//		printCharArrayToString(alphabet);
-	}
-
-	// Randomizes reference Alphabet
-	static void randomizeReferenceAlphabet(long seed) {
-		List<Character> listC = new ArrayList<>();
-		for (char c : referenceAlphabet) {
-			listC.add(c);
-		}
-		Collections.shuffle(listC, new Random(seed));
-		String str = listC.toString().replaceAll(",", "");
-		referenceAlphabet = str.substring(1, str.length() - 1).replaceAll(" ", "").toCharArray();
+		Collections.shuffle(tempList, new Random(seed));
+		String str = tempList.toString().replaceAll(",", "");
+		arr = str.substring(1, str.length() - 1).replaceAll(" ", "").toCharArray();
+		return arr;
 	}
 
 	static int generateRandomNumber(int min, int max) {
@@ -256,7 +241,8 @@ public class Generator {
 	}
 
 	static String generatePw(int length, long pin, boolean blacked) {
-		randomizeAlphabet(pin);
+//		randomizeAlphabet(pin);
+		alphabet = randomizeAlphabet(pin, referenceAlphabet);
 		System.out.print("PW Length: ");
 		if (blacked) {
 			printBlacked(Long.toString(length));
@@ -281,7 +267,8 @@ public class Generator {
 
 	// pass your indeces to retrieve your pwd.
 	static String generateByIndices(int[] indices, long pin, boolean blacked) {
-		randomizeAlphabet(pin);
+//		randomizeAlphabet(pin);
+		alphabet = randomizeAlphabet(pin, referenceAlphabet);
 		System.out.print("PW Length: ");
 		if (blacked) {
 			printBlacked(Integer.toString(indices.length));
