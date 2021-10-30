@@ -11,8 +11,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Generator {
-	// Declaring the color
-	// Custom declaration
+	// Custom ANSI color declaration
 	public static final String ANSI_YELLOW = "\u001B[33m";
 	public static final String ANSI_BLACK = "\u001B[30m";
 	public static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
@@ -332,10 +331,10 @@ public class Generator {
 	}
 
 	static void printNormal(String message) {
-//		message = padWithEmtpyString() + message + padWithEmtpyString();
 		System.out.println(message);
 	}
 
+	// Wrap Console in order to ease testing and for separation of concerns
 	static class ConsoleReader {
 		private final Console c;
 
