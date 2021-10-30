@@ -127,6 +127,7 @@ public class Generator {
 			} else {
 				System.out.println("Error occured on retrieving PW, check Stack Trace for Details");
 				e.printStackTrace();
+				System.exit(-1);
 			}
 			return;
 		}
@@ -186,6 +187,7 @@ public class Generator {
 			} else {
 				System.out.println("Error occured on interactive PW generation, check Stack Trace for Details");
 				e.printStackTrace();
+				System.exit(-1);
 			}
 			return;
 		}
