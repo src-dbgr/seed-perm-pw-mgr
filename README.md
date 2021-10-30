@@ -50,5 +50,4 @@ Execute in PowerShell:
 ![Index Generation](/misc/01_pw_unmasked.jpg "Copy and Paste Content into Text Editor")
 
 ## Retrieve PW With Indexes Array & Custom Seed Number & Custom PIN (Seed and PIN need to be the Same as have been used for Creation)
-
-![Index Generation](/misc/01_pw_unmasked.jpg "Copy and Paste Content into Text Editor")
+![Index Generation](/misc/02_pw_retrieve.jpg "Copy and Paste Content into Text Editor")
