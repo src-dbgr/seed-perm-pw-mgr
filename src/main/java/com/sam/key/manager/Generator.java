@@ -1,6 +1,7 @@
 package com.sam.key.manager;
 
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -10,15 +11,16 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Generator {
-
-	// Declaring ANSI_RESET so that we can reset the color
-	public static final String ANSI_RESET = "\u001B[0m";
-
 	// Declaring the color
 	// Custom declaration
 	public static final String ANSI_YELLOW = "\u001B[33m";
 	public static final String ANSI_BLACK = "\u001B[30m";
 	public static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
+	// Declaring ANSI_RESET so that we can reset the color
+	public static final String ANSI_RESET = "\u001B[0m";
+
+	public static final int MIN_PADDING_LENGTH = 5;
+	public static final int MAX_PADDING_LENGTH = 20;
 
 	static char[] alphabet;
 
@@ -37,26 +39,27 @@ public class Generator {
 		} catch (Exception e) {
 			System.out.println("Issue occured, please choose one of the available options.");
 			e.printStackTrace();
-			System.exit(-1);
+			return;
 		}
+		ConsoleReader cr = new ConsoleReader();
 		switch (option) {
 		case 0:
-			interactiveIndicesGenerationBlacked();
+			interactiveIndexesGenerationBlacked(br, cr);
 			break;
 		case 1:
-			interactiveIndicesGenerationVisible();
+			interactiveIndexesGenerationVisible(br, cr);
 			break;
 		case 2:
-			interactivePWGenerationBlacked();
+			interactivePWGenerationBlacked(br, cr);
 			break;
 		case 3:
-			interactivePWGenerationVisible();
+			interactivePWGenerationVisible(br, cr);
 			break;
 		case 4:
-			interactivePWRetrieve(true);
+			interactivePWRetrieve(true, cr, br);
 			break;
 		case 5:
-			interactivePWRetrieve(false);
+			interactivePWRetrieve(false, cr, br);
 			break;
 		default:
 			System.out.println("This option is not available. Choose a listed option.");
@@ -66,21 +69,19 @@ public class Generator {
 
 	static void printCLICommands() {
 		System.out.println("Choose what you want to do:");
-		System.out.println("0 - Create Passwords - Show only indices (Blacked)");
-		System.out.println("1 - Create Passwords - Show only indices (Visible)");
-		System.out.println("2 - Create Passwords - Show PWs and Indices (Blacked)");
-		System.out.println("3 - Create Passwords - Show PWs and Indices (Visible)");
+		System.out.println("0 - Create Passwords - Show only indexes (Blacked)");
+		System.out.println("1 - Create Passwords - Show only indexes (Visible)");
+		System.out.println("2 - Create Passwords - Show PWs and indexes (Blacked)");
+		System.out.println("3 - Create Passwords - Show PWs and indexes (Visible)");
 		System.out.println("4 - Retrieve Password (Blacked)");
 		System.out.println("5 - Retrieve Password (Visible)");
 	}
 
-	static void alphabetSeedRequest() {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	static void alphabetSeedRequest(ConsoleReader cr, BufferedReader br) {
 		char[] seedC = null;
 		try {
-			seedC = System.console().readPassword("Enter Alphabet Permutation Seed: \n");
+			seedC = cr.readPassword("Enter Alphabet Permutation Seed: \n");
 			long seed = Long.parseLong(new String(seedC));
-//			randomizeReferenceAlphabet(seed);
 			referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
 		} catch (Exception e) {
 			if (e instanceof NullPointerException && seedC == null) {
@@ -97,76 +98,73 @@ public class Generator {
 			System.out.println("Enter Alphabet Permutation Seed: ");
 			String seedS = br.readLine();
 			long seed = Long.parseLong(seedS);
-//			randomizeReferenceAlphabet(seed);
 			referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 	}
 
-	static void interactivePWRetrieve(boolean blacked) {
-		alphabetSeedRequest();
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	static void interactivePWRetrieve(boolean blacked, ConsoleReader cr, BufferedReader br) {
+		alphabetSeedRequest(cr, br);
 		char[] readPin = null;
-		int[] indices = null;
+		int[] indexes = null;
 		try {
-			System.out.print("Enter Indices Array:\n");
-			String indicesString = br.readLine();
-			indices = parseStringToIntArr(indicesString);
-			printIntArrayToString(indices, blacked);
-			readPin = System.console().readPassword("Enter Pin:\n");
+			System.out.print("Enter Indexes Array:\n");
+			String indexesString = br.readLine();
+			indexes = parseStringToIntArr(indexesString);
+			printIntArrayToString(indexes, blacked);
+			readPin = cr.readPassword("Enter Pin:\n");
 			long pin = Long.parseLong(new String(readPin));
 			if (blacked) {
-				printBlacked(generateByIndices(indices, pin, blacked));
+				printBlacked(generateByIndexes(indexes, pin, blacked));
 			} else {
-				printNormal(generateByIndices(indices, pin, blacked));
+				printNormal(generateByIndexes(indexes, pin, blacked));
 			}
 		} catch (Exception e) {
 			if (e instanceof NullPointerException && readPin == null) {
 				System.out.println("Masking input not supported.. Continue with default Invocation");
-				interactivePWRetrieveOnNull(br, blacked, indices);
+				interactivePWRetrieveOnNull(br, blacked, indexes);
 			} else {
 				System.out.println("Error occured on retrieving PW, check Stack Trace for Details");
 				e.printStackTrace();
 			}
-			System.exit(-1);
+			return;
 		}
 	}
 
-	static void interactivePWRetrieveOnNull(BufferedReader br, boolean blacked, int[] indices) {
+	static void interactivePWRetrieveOnNull(BufferedReader br, boolean blacked, int[] indexes) {
 		try {
 			System.out.println("Enter Pin:");
 			String pin = br.readLine();
 			long seed = Long.parseLong(pin);
 			if (blacked) {
-				printBlacked(generateByIndices(indices, seed, blacked));
+				printBlacked(generateByIndexes(indexes, seed, blacked));
 			} else {
-				printNormal(generateByIndices(indices, seed, blacked));
+				printNormal(generateByIndexes(indexes, seed, blacked));
 			}
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 	}
 
-	static void interactiveIndicesGenerationBlacked() {
-		interactiveGenerator(true, true);
+	static void interactiveIndexesGenerationBlacked(BufferedReader br, ConsoleReader cr) {
+		interactiveGenerator(true, true, br, cr);
 	}
 
-	static void interactivePWGenerationBlacked() {
-		interactiveGenerator(false, true);
+	static void interactivePWGenerationBlacked(BufferedReader br, ConsoleReader cr) {
+		interactiveGenerator(false, true, br, cr);
 	}
 
-	static void interactiveIndicesGenerationVisible() {
-		interactiveGenerator(true, false);
+	static void interactiveIndexesGenerationVisible(BufferedReader br, ConsoleReader cr) {
+		interactiveGenerator(true, false, br, cr);
 	}
 
-	static void interactivePWGenerationVisible() {
-		interactiveGenerator(false, false);
+	static void interactivePWGenerationVisible(BufferedReader br, ConsoleReader cr) {
+		interactiveGenerator(false, false, br, cr);
 	}
 
-	static void interactiveGenerator(boolean anonymous, boolean blacked) {
-		alphabetSeedRequest();
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	static void interactiveGenerator(boolean anonymous, boolean blacked, BufferedReader br, ConsoleReader cr) {
+		alphabetSeedRequest(cr, br);
 		char[] readPin = null;
 		int min = -1;
 		int max = -1;
@@ -178,7 +176,7 @@ public class Generator {
 			max = Integer.parseInt(br.readLine());
 			System.out.print("Enter number of Passwords to be created:\n");
 			numPws = Integer.parseInt(br.readLine());
-			readPin = System.console().readPassword("Enter Pin:\n");
+			readPin = cr.readPassword("Enter Pin:\n");
 			long pin = Long.parseLong(new String(readPin));
 			printMultipleRandomPWs(min, max, numPws, pin, anonymous, blacked);
 		} catch (Exception e) {
@@ -189,7 +187,7 @@ public class Generator {
 				System.out.println("Error occured on interactive PW generation, check Stack Trace for Details");
 				e.printStackTrace();
 			}
-			System.exit(-1);
+			return;
 		}
 	}
 
@@ -206,14 +204,14 @@ public class Generator {
 	}
 
 	static int[] parseStringToIntArr(String word) {
-		String[] stringIndices = word.replaceAll("\\{", "").replaceAll("\\}", "").replaceAll("\\[", "")
+		String[] stringIndexes = word.replaceAll("\\{", "").replaceAll("\\}", "").replaceAll("\\[", "")
 				.replaceAll("\\]", "").replaceAll("\\s", "").split(",");
-		int[] indices = new int[stringIndices.length];
+		int[] indexes = new int[stringIndexes.length];
 
-		for (int i = 0; i < indices.length; i++) {
-			indices[i] = Integer.parseInt(stringIndices[i]);
+		for (int i = 0; i < indexes.length; i++) {
+			indexes[i] = Integer.parseInt(stringIndexes[i]);
 		}
-		return indices;
+		return indexes;
 	}
 
 	static char[] randomizeAlphabet(long seed, char[] alphabet) {
@@ -232,16 +230,18 @@ public class Generator {
 		return ThreadLocalRandom.current().nextInt(min, max);
 	}
 
-	static int[] generateIndices(int length) {
-		int[] indices = new int[length];
-		for (int i = 0; i < length; i++) {
-			indices[i] = generateRandomNumber(0, alphabet.length);
+	static int[] generateIndexes(int length, long pin) {
+		if (alphabet == null) {
+			alphabet = randomizeAlphabet(pin, referenceAlphabet);
 		}
-		return indices;
+		int[] indexes = new int[length];
+		for (int i = 0; i < length; i++) {
+			indexes[i] = generateRandomNumber(0, alphabet.length);
+		}
+		return indexes;
 	}
 
 	static String generatePw(int length, long pin, boolean blacked) {
-//		randomizeAlphabet(pin);
 		alphabet = randomizeAlphabet(pin, referenceAlphabet);
 		System.out.print("PW Length: ");
 		if (blacked) {
@@ -250,10 +250,10 @@ public class Generator {
 			printNormal(Long.toString(length));
 		}
 		String pw = "";
-		int[] indices = generateIndices(length);
-		printIntArrayToString(indices, blacked);
-		for (int i = 0; i < indices.length; i++) {
-			pw += alphabet[indices[i]];
+		int[] indexes = generateIndexes(length, pin);
+		printIntArrayToString(indexes, blacked);
+		for (int i = 0; i < indexes.length; i++) {
+			pw += alphabet[indexes[i]];
 		}
 		System.out.print("PW: ");
 		pw += padWithEmtpyString();
@@ -261,44 +261,46 @@ public class Generator {
 	}
 
 	static String padWithEmtpyString() {
-		int length = generateRandomNumber(5, 20);
+		int length = generateRandomNumber(MIN_PADDING_LENGTH, MAX_PADDING_LENGTH);
 		return String.format("%1$" + length + "s", "");
 	}
 
 	// pass your indeces to retrieve your pwd.
-	static String generateByIndices(int[] indices, long pin, boolean blacked) {
-//		randomizeAlphabet(pin);
+	static String generateByIndexes(int[] indexes, long pin, boolean blacked) {
 		alphabet = randomizeAlphabet(pin, referenceAlphabet);
 		System.out.print("PW Length: ");
 		if (blacked) {
-			printBlacked(Integer.toString(indices.length));
+			printBlacked(Integer.toString(indexes.length));
 		} else {
-			printNormal(Integer.toString(indices.length));
+			printNormal(Integer.toString(indexes.length));
 		}
 		String pw = "";
-		printIntArrayToString(indices, blacked);
-		for (int i = 0; i < indices.length; i++) {
-			pw += alphabet[indices[i]];
+		printIntArrayToString(indexes, blacked);
+		for (int i = 0; i < indexes.length; i++) {
+			pw += alphabet[indexes[i]];
 		}
 		System.out.print("PW: ");
 		return pw;
 	}
 
 	static void printIntArrayToString(int[] arr, boolean blacked) {
-		String indices = "{";
+		String indexes = "{";
 		for (int i = 0; i < arr.length; i++) {
-			indices += Integer.toString(arr[i]);
-			indices += (i == arr.length - 1) ? "}" : ",";
+			indexes += Integer.toString(arr[i]);
+			indexes += (i == arr.length - 1) ? "}" : ",";
 		}
-		System.out.print("INDICES: ");
+		System.out.print("INDEXES: ");
 		if (blacked) {
-			printBlacked(indices);
+			printBlacked(indexes);
 		} else {
-			printNormal(indices);
+			printNormal(indexes);
 		}
 	}
 
-	static void printCharArrayToString(char[] arr) {
+	static void printCharArrayToString(char[] arr) throws Exception {
+		if (arr == null) {
+			throw new Exception("Passed Array is null.");
+		}
 		String str = "alphabet: {";
 		for (int i = 0; i < arr.length; i++) {
 			str += "'" + Character.toString(arr[i]) + "'";
@@ -331,4 +333,26 @@ public class Generator {
 //		message = padWithEmtpyString() + message + padWithEmtpyString();
 		System.out.println(message);
 	}
+
+	static class ConsoleReader {
+		private final Console c;
+
+		ConsoleReader(Console c) {
+			this.c = c;
+		}
+
+		public ConsoleReader() {
+			this(System.console());
+		}
+
+		public char[] readPassword() {
+			return c.readPassword();
+		}
+
+		public char[] readPassword(String msg) {
+			return c.readPassword(msg);
+		}
+
+	}
+
 }
