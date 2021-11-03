@@ -125,9 +125,9 @@ public class GeneratorTest {
 
 	@Test
 	public void generatePwTest() {
-		int length = (int) (Math.random() * 100);
+		int length = (int) (Math.random() * 60);
 		long pin = (long) (Math.random() * 1_000_000);
-		String generatedPw = generatePw(length, pin, true);
+		String generatedPw = generatePw(length, pin, true, false);
 		assertFalse(generatedPw.length() == length);
 		assertTrue(generatedPw.length() >= length + MIN_PADDING_LENGTH);
 		assertTrue(generatedPw.length() <= length + MAX_PADDING_LENGTH);
@@ -135,7 +135,7 @@ public class GeneratorTest {
 		// check that only reference alphabet chars are considered
 		pwContainsCheck(generatedPwCharArray);
 
-		generatedPw = generatePw(length, pin, false);
+		generatedPw = generatePw(length, pin, false, false);
 		assertFalse(generatedPw.length() == length);
 		assertTrue(generatedPw.length() >= length + MIN_PADDING_LENGTH);
 		assertTrue(generatedPw.length() <= length + MAX_PADDING_LENGTH);
@@ -276,7 +276,7 @@ public class GeneratorTest {
 
 		char[] initialAlphabetState = referenceAlphabet;
 		assertEquals(initialAlphabetState, referenceAlphabet);
-		BufferedReader br = provideBufferedReaderMock();
+		BufferedReader br = provideBufferedReaderTokenMock();
 		ConsoleReader cr = provideConsoleReaderMock();
 		interactivePWRetrieve(true, cr, br);
 		assertNotEquals(initialAlphabetState, referenceAlphabet);
@@ -290,7 +290,7 @@ public class GeneratorTest {
 
 		char[] initialAlphabetState = referenceAlphabet;
 		assertEquals(initialAlphabetState, referenceAlphabet);
-		BufferedReader br = provideBufferedReaderMock();
+		BufferedReader br = provideBufferedReaderTokenMock();
 		ConsoleReader cr = provideConsoleReaderMock();
 		interactivePWRetrieve(false, cr, br);
 		assertNotEquals(initialAlphabetState, referenceAlphabet);
@@ -304,7 +304,7 @@ public class GeneratorTest {
 
 		char[] initialAlphabetState = referenceAlphabet;
 		assertEquals(initialAlphabetState, referenceAlphabet);
-		BufferedReader br = provideBufferedReaderMock();
+		BufferedReader br = provideBufferedReaderNullTokenMock();
 		ConsoleReader cr = provideConsoleReaderNullMock();
 		interactivePWRetrieve(false, cr, br);
 		assertNotEquals(initialAlphabetState, referenceAlphabet);
@@ -327,6 +327,23 @@ public class GeneratorTest {
 		BufferedReader brMock = Mockito.mock(BufferedReader.class);
 		Mockito.when(brMock.readLine()).thenReturn(Integer.toString(PERMUTATION_SEED), Integer.toString(MIN_PW_LENGTH),
 				Integer.toString(MAX_PW_LENGTH), Integer.toString(NO_PWS));
+		return brMock;
+	}
+
+	private BufferedReader provideBufferedReaderTokenMock() throws IOException {
+		BufferedReader brMock = Mockito.mock(BufferedReader.class);
+		String mockToken = "WzIyLCAzNiwgNTEsIDMxLCA2LCA0OSwgNzUsIDQ5LCA4MCwgNzQsIDAsIDIyLCA0NiwgNzEsIDczLCA3MCwgMTYsIDExLCA4MiwgNjEsIDI5LCAzNywgMjAsIDMzLCA0MSwgNzcsIDU0LCAyMiwgMzEsIDM4LCAyOSwgNzAsIDQzLCA2OSwgNzcsIDcyLCA0LCA2MSwgNzUsIDc3LCA0OCwgNzksIDAsIDM4LCA0OSwgNTIsIDU4LCAzNiwgMjIsIDgyLCA2MiwgNTQsIDc1LCAxOCwgODIsIDQxLCA3NSwgMjgsIDQzLCAyOSwgMTksIDUzLCAzMiwgNzQsIDEyLCA1OCwgNDksIDM4LCAyNCwgNDYsIDM5LCAyNSwgNDcsIDcxLCAxNCwgMzMsIDc2LCA0OSwgMzEsIDIyLCA3NiwgNTQsIDI1XQ==";
+		Mockito.when(brMock.readLine()).thenReturn(mockToken, Integer.toString(PERMUTATION_SEED),
+				Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH), Integer.toString(NO_PWS));
+		return brMock;
+	}
+
+	private BufferedReader provideBufferedReaderNullTokenMock() throws IOException {
+		BufferedReader brMock = Mockito.mock(BufferedReader.class);
+		String mockToken = "WzIyLCAzNiwgNTEsIDMxLCA2LCA0OSwgNzUsIDQ5LCA4MCwgNzQsIDAsIDIyLCA0NiwgNzEsIDczLCA3MCwgMTYsIDExLCA4MiwgNjEsIDI5LCAzNywgMjAsIDMzLCA0MSwgNzcsIDU0LCAyMiwgMzEsIDM4LCAyOSwgNzAsIDQzLCA2OSwgNzcsIDcyLCA0LCA2MSwgNzUsIDc3LCA0OCwgNzksIDAsIDM4LCA0OSwgNTIsIDU4LCAzNiwgMjIsIDgyLCA2MiwgNTQsIDc1LCAxOCwgODIsIDQxLCA3NSwgMjgsIDQzLCAyOSwgMTksIDUzLCAzMiwgNzQsIDEyLCA1OCwgNDksIDM4LCAyNCwgNDYsIDM5LCAyNSwgNDcsIDcxLCAxNCwgMzMsIDc2LCA0OSwgMzEsIDIyLCA3NiwgNTQsIDI1XQ==";
+		Mockito.when(brMock.readLine()).thenReturn(Integer.toString(PERMUTATION_SEED), mockToken,
+				Integer.toString(PERMUTATION_SEED), Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH),
+				Integer.toString(NO_PWS));
 		return brMock;
 	}
 
