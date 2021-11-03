@@ -1,9 +1,11 @@
-# Interactive Seed Permutation PW Manager
+# Interactive PRNG Seed Permutation PW Manager
 
 - Simple password generation and PW retrieval manager.
-- Random PW generation based on custom chosen secret permutation seed number and custom chosen secret pin number.
-- PW retrieval by passing the permutation array in combination with the secret permutation seed and the secret pin number.
-- No memorization of multiple passwords, simply store the resulted permutation array somewhere and memorize your secret seed + secret pin
+- Pseudo Random PW generation based on custom chosen secret permutation seed number and custom chosen secret pin number.
+- With each PW the generator creates encrypted token - These token need to be stored somewhere since they are crutial for PW retrieval.
+- PW retrieval happens by passing the token in combination with the secret permutation seed and the secret pin number.
+- No memorization of multiple passwords, simply store the resulted token somewhere and memorize your secret seed + secret pin
+- Max PW length 60 characters
 - Recommendation to use PWs with length > 20 characters
 - Recommendation to run the batch script from within Windows PowerShell since PowerShell provides all mechanisms for obfuscation
 - Multiple PW generation and retrieval options available
@@ -41,13 +43,16 @@ mvn clean install
 Execute in PowerShell:
 `java -cp manager-0.0.1-SNAPSHOT.jar com.sam.key.manager.Generator`
 
-## Example PW Generation with Custom Seed Number & Custom PIN
+# The following Example is deprecated and will be updated soon since the retrieval mechanism has been changed to a token based approach
+
+## (DEPRECATED) Example PW Generation with Custom Seed Number & Custom PIN
 
 ![Index Generation](/misc/00_pw_generation.jpg "Masked PW and Index Generation")
 
-## Copy & Paste Content into Text Editor
+## (DEPRECATED) Copy & Paste Content into Text Editor
 
 ![Index Generation](/misc/01_pw_unmasked.jpg "Copy and Paste Content into Text Editor")
 
-## Retrieve PW With Indexes Array & Custom Seed Number & Custom PIN (Seed and PIN need to be the Same as have been used for Creation)
+## (DEPRECATED) Retrieve PW With Indexes Array & Custom Seed Number & Custom PIN (Seed and PIN need to be the Same as have been used for Creation)
+
 ![Index Generation](/misc/02_pw_retrieve.jpg "Copy and Paste Content into Text Editor")
