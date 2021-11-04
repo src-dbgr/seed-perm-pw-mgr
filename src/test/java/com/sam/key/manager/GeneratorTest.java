@@ -10,9 +10,9 @@ import static com.sam.key.manager.Generator.generateIndexes;
 import static com.sam.key.manager.Generator.generatePw;
 import static com.sam.key.manager.Generator.generateRandomNumber;
 import static com.sam.key.manager.Generator.interactiveGenerator;
-import static com.sam.key.manager.Generator.interactiveIndexesGenerationBlacked;
+import static com.sam.key.manager.Generator.interactiveIndexesGenerationHidden;
 import static com.sam.key.manager.Generator.interactiveIndexesGenerationVisible;
-import static com.sam.key.manager.Generator.interactivePWGenerationBlacked;
+import static com.sam.key.manager.Generator.interactivePWGenerationHidden;
 import static com.sam.key.manager.Generator.interactivePWGenerationVisible;
 import static com.sam.key.manager.Generator.interactivePWRetrieve;
 import static com.sam.key.manager.Generator.padWithEmtpyString;
@@ -191,22 +191,22 @@ public class GeneratorTest {
 	}
 
 	@Test
-	public void interactiveIndexesGenerationBlackedTest() throws IOException {
+	public void interactiveIndexesGenerationHiddenTest() throws IOException {
 		char[] initialAlphabetState = referenceAlphabet;
 		assertEquals(initialAlphabetState, referenceAlphabet);
 		BufferedReader br = provideBufferedReaderMock();
 		ConsoleReader cr = provideConsoleReaderMock();
-		interactiveIndexesGenerationBlacked(br, cr);
+		interactiveIndexesGenerationHidden(br, cr);
 		assertNotEquals(initialAlphabetState, referenceAlphabet);
 	}
 
 	@Test
-	public void interactivePWGenerationBlackedTest() throws IOException {
+	public void interactivePWGenerationHiddenTest() throws IOException {
 		char[] initialAlphabetState = referenceAlphabet;
 		assertEquals(initialAlphabetState, referenceAlphabet);
 		BufferedReader br = provideBufferedReaderMock();
 		ConsoleReader cr = provideConsoleReaderMock();
-		interactivePWGenerationBlacked(br, cr);
+		interactivePWGenerationHidden(br, cr);
 		assertNotEquals(initialAlphabetState, referenceAlphabet);
 	}
 
@@ -341,7 +341,7 @@ public class GeneratorTest {
 	private BufferedReader provideBufferedReaderNullTokenMock() throws IOException {
 		BufferedReader brMock = Mockito.mock(BufferedReader.class);
 		String mockToken = "WzIyLCAzNiwgNTEsIDMxLCA2LCA0OSwgNzUsIDQ5LCA4MCwgNzQsIDAsIDIyLCA0NiwgNzEsIDczLCA3MCwgMTYsIDExLCA4MiwgNjEsIDI5LCAzNywgMjAsIDMzLCA0MSwgNzcsIDU0LCAyMiwgMzEsIDM4LCAyOSwgNzAsIDQzLCA2OSwgNzcsIDcyLCA0LCA2MSwgNzUsIDc3LCA0OCwgNzksIDAsIDM4LCA0OSwgNTIsIDU4LCAzNiwgMjIsIDgyLCA2MiwgNTQsIDc1LCAxOCwgODIsIDQxLCA3NSwgMjgsIDQzLCAyOSwgMTksIDUzLCAzMiwgNzQsIDEyLCA1OCwgNDksIDM4LCAyNCwgNDYsIDM5LCAyNSwgNDcsIDcxLCAxNCwgMzMsIDc2LCA0OSwgMzEsIDIyLCA3NiwgNTQsIDI1XQ==";
-		Mockito.when(brMock.readLine()).thenReturn(Integer.toString(PERMUTATION_SEED), mockToken,
+		Mockito.when(brMock.readLine()).thenReturn(mockToken, Integer.toString(PERMUTATION_SEED),
 				Integer.toString(PERMUTATION_SEED), Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH),
 				Integer.toString(NO_PWS));
 		return brMock;
