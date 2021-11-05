@@ -1,23 +1,30 @@
 package com.sam.key.manager;
 
+import static org.fusesource.jansi.Ansi.ansi;
+import static org.fusesource.jansi.Ansi.Color.BLACK;
+import static org.fusesource.jansi.Ansi.Color.GREEN;
+import static org.fusesource.jansi.Ansi.Color.MAGENTA;
+import static org.fusesource.jansi.Ansi.Color.RED;
+import static org.fusesource.jansi.Ansi.Color.WHITE;
+import static org.fusesource.jansi.Ansi.Color.YELLOW;
+
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.fusesource.jansi.AnsiConsole;
-import static org.fusesource.jansi.Ansi.*;
-import static org.fusesource.jansi.Ansi.Color.*;
 
 public class Generator {
 	// Custom ANSI color declaration
@@ -270,7 +277,17 @@ public class Generator {
 	}
 
 	static int generateRandomNumber(int min, int max) {
-		return ThreadLocalRandom.current().nextInt(min, max);
+		int rand = -1;
+		try {
+			rand = SecureRandom.getInstanceStrong().nextInt(max - min) + min;
+		} catch (NoSuchAlgorithmException e) {
+			System.out.println("Issue occured generating random numbers");
+			e.printStackTrace();
+		}
+		if (rand == -1) {
+			throw new Error("Issue occured generating random numbers");
+		}
+		return rand;
 	}
 
 	static int[] generateIndexes(int length, long pin) {
@@ -278,6 +295,7 @@ public class Generator {
 			alphabet = randomizeAlphabet(pin, referenceAlphabet);
 		}
 		int[] indexes = new int[length];
+
 		for (int i = 0; i < length; i++) {
 			indexes[i] = generateRandomNumber(0, alphabet.length);
 		}
@@ -289,11 +307,11 @@ public class Generator {
 		String pw = "";
 		int[] indexes = generateIndexes(length, pin);
 		System.out.println(ansi().fg(GREEN).a("Token:").reset());
-		String encodedIndexes = provideObfuscatedEncodedIndexes(encoder, indexes, pin);
+		String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin);
 		if (hidden) {
-			printHidden(encodedIndexes);
+			printHidden(token);
 		} else {
-			printNormal(encodedIndexes);
+			printNormal(token);
 		}
 		for (int i = 0; i < indexes.length; i++) {
 			pw += alphabet[indexes[i]];
@@ -428,7 +446,13 @@ public class Generator {
 				obfuscatedIndexes[i] = arrayLenghtShifted;
 				continue;
 			}
-			obfuscatedIndexes[i] = (int) (Math.floor(Math.random() * (alphabetLength + 1)));
+			try {
+				obfuscatedIndexes[i] = (int) (Math
+						.floor(SecureRandom.getInstanceStrong().nextDouble() * (alphabetLength + 1)));
+			} catch (NoSuchAlgorithmException e) {
+				System.out.println("issue occured with random number generation");
+				e.printStackTrace();
+			}
 		}
 		return obfuscatedIndexes;
 	}

@@ -30,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -107,7 +109,7 @@ public class GeneratorTest {
 		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
 			generateRandomNumber(rand, rand);
 		});
-		String expectedMessage = "bound must be greater than origin";
+		String expectedMessage = "bound must be positive";
 		assertEquals(expectedMessage, exception.getMessage());
 
 	}
@@ -321,6 +323,25 @@ public class GeneratorTest {
 		printCharArrayToString(
 				"{48,13,73,7,64,78,11,77,27,54,38,56,71,72,43,67,28,30,67,19,46,28,5,37,2,65,79,43,32,12,17,4}"
 						.toCharArray());
+	}
+
+	@Test
+	public void testPwGenerationAndRetieval() throws NoSuchAlgorithmException {
+		for (int j = 0; j < 100; j++) {
+			long tempPin = SecureRandom.getInstanceStrong().nextLong();
+			int tempPWLength = (int) Math.ceil((referenceAlphabet.length - 22) * Math.random());
+			alphabet = randomizeAlphabet(tempPin, referenceAlphabet);
+			int[] indexes = generateIndexes(tempPWLength, tempPin);
+			String token = Generator.provideObfuscatedEncodedIndexes(Generator.encoder, indexes, tempPin);
+			String encodedPW = "";
+			for (int i = 0; i < indexes.length; i++) {
+				encodedPW += alphabet[indexes[i]];
+			}
+			int[] resultIndexes = Generator.provideClearDecodedIndexes(Generator.decoder, token, tempPin);
+			String decodedPW = Generator.generateByIndexes(resultIndexes, tempPin, false);
+			assertEquals(encodedPW, decodedPW);
+		}
+
 	}
 
 	private BufferedReader provideBufferedReaderMock() throws IOException {
