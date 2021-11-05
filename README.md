@@ -1,5 +1,8 @@
 ![Index Generation](/misc/logo.jpg "Masked PW and Index Generation")
 # Interactive PRNG Seed Permutation PW Manager
+>## The current version is in a beta phase, but the basic functionality is in place, feel free to test it. I am happy about any feedback
+
+Since I was sick of these constant PW changes due to insecurity, I was pointed towards PW managers. However, in many case, I simply do not understand what these PW Managers are doing exactly and where my PWs are actually stored and how secure it is to pass my passwords to some external host. I decided to try to build something myself, so I have an idea about the combinatorics involved protecting my PWs. I came up with the following project.
 
 - Simple password generation and PW retrieval manager.
 - Pseudo Random PW generation based on custom chosen secret permutation seed number and custom chosen secret pin number.
@@ -8,7 +11,6 @@
 - No memorization of multiple passwords, simply store the resulted token somewhere and memorize your secret seed + secret pin
 - Max PW length 62 characters
 - Recommendation to use PWs with length > 20 characters
-- Recommendation to run the batch script from within Windows PowerShell since PowerShell provides all mechanisms for obfuscation
 - Multiple PW generation and retrieval options available
 - Everything runs on your local machine
 
@@ -18,9 +20,9 @@
 - Java v11
 - Windows Terminal (recommended)
 
-#### Build Run:
+#### Execute Clean Build:
 
-mvn clean install
+>`mvn clean install`
 
 ##### Attention - some features, such as color change of output text, do not work within CMD prompt (Vulnerable to screen shot hacks)
 

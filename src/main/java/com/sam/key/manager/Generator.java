@@ -12,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -131,12 +130,6 @@ public class Generator {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	static byte[] longToBytes(long x) {
-		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-		buffer.putLong(x);
-		return buffer.array();
 	}
 
 	static void alphabetSeedRequestOnNull(BufferedReader br) {
@@ -338,20 +331,6 @@ public class Generator {
 		}
 		System.out.println(ansi().fg(GREEN).a("\nPW: ").reset());
 		return pw;
-	}
-
-	static void printIntArrayToString(int[] arr, boolean hidden) {
-		String indexes = "{";
-		for (int i = 0; i < arr.length; i++) {
-			indexes += Integer.toString(arr[i]);
-			indexes += (i == arr.length - 1) ? "}" : ",";
-		}
-		System.out.print("INDEXES: ");
-		if (hidden) {
-			printHidden(indexes);
-		} else {
-			printNormal(indexes);
-		}
 	}
 
 	static void printCharArrayToString(char[] arr) throws Exception {
