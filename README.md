@@ -18,7 +18,6 @@ Since I was sick of these constant PW changes due to insecurity, I was pointed t
 
 - Maven
 - Java v11
-- Windows Terminal (recommended)
 
 #### Execute Clean Build:
 
