@@ -36,6 +36,7 @@ public class Generator {
 
 	public static final int MIN_PADDING_LENGTH = 5;
 	public static final int MAX_PADDING_LENGTH = 20;
+	public static final int RESERVED_ARRAY_INDEXES = 2;
 
 	// Determines Max PW length and determines combinatorial search space for
 	// random index assignment for PW length
@@ -427,32 +428,46 @@ public class Generator {
 		return (int) sum;
 	}
 
+	// only deals with positive integers
+	static int provideSecureRandomInteger(int min, int max) {
+		int n = -1;
+		try {
+			n = SecureRandom.getInstanceStrong().nextInt(max - min + 1) + min;
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		if (n == -1) {
+			throw new Error("Issue occured assigning random number");
+		}
+		return n;
+	}
+
 	static int[] obfuscateIndexes(int[] indexes, int alphabetLength, long pin) {
+		int pwLength = indexes.length;
 		int[] obfuscatedIndexes = new int[alphabetLength];
-		int shiftValue = provideShiftValue(pin, alphabetLength);
-		int arrayLenghtShifted = shiftValue(indexes.length, shiftValue, alphabetLength);
-		int min = indexes.length + 1;
-		if ((alphabetLength - min) <= OBFUSCATION_OFFSET) {
+		int min = RESERVED_ARRAY_INDEXES;
+		if ((alphabetLength - (indexes.length + 1)) <= OBFUSCATION_OFFSET) {
 			throw new Error("Password too long, lower password max-length to max: "
 					+ (alphabetLength - (OBFUSCATION_OFFSET + 1)));
 		}
-		int indexArrayLengthShifted = generateRandomNumber(min, alphabetLength);
-		obfuscatedIndexes[0] = shiftValue(indexArrayLengthShifted, shiftValue, alphabetLength);
-		for (int i = 0; i < indexes.length; i++) {
-			obfuscatedIndexes[i + 1] = shiftValue(indexes[i], shiftValue, alphabetLength);
+		int max = (alphabetLength) - pwLength;
+		int shiftValue = provideShiftValue(pin, alphabetLength);
+		if (max <= min) {
+			throw new Error("PW too long");
 		}
-		for (int i = (indexes.length + 1); i < alphabetLength; i++) {
-			if (i == indexArrayLengthShifted) {
-				obfuscatedIndexes[i] = arrayLenghtShifted;
-				continue;
-			}
-			try {
-				obfuscatedIndexes[i] = (int) (Math
-						.floor(SecureRandom.getInstanceStrong().nextDouble() * (alphabetLength + 1)));
-			} catch (NoSuchAlgorithmException e) {
-				System.out.println("issue occured with random number generation");
-				e.printStackTrace();
-			}
+
+		int arrayStartIndex = provideSecureRandomInteger(min, max);
+		obfuscatedIndexes[1] = arrayStartIndex;
+		for (int i = arrayStartIndex; i < (indexes.length + arrayStartIndex); i++) {
+			obfuscatedIndexes[i] = indexes[i - arrayStartIndex];
+		}
+		int[] remainingIndexes = provideRemainingIndexes(arrayStartIndex, pwLength, alphabetLength);
+		int random = provideSecureRandomInteger(0, remainingIndexes.length - 1);
+		obfuscatedIndexes[0] = remainingIndexes[random];
+		obfuscatedIndexes[obfuscatedIndexes[0]] = pwLength;
+		obfuscatedIndexes = fillEmptySpotsInObfuscatedArray(obfuscatedIndexes, remainingIndexes, alphabetLength);
+		for (int i = 0; i < obfuscatedIndexes.length; i++) {
+			obfuscatedIndexes[i] = shiftValue(obfuscatedIndexes[i], shiftValue, alphabetLength);
 		}
 		return obfuscatedIndexes;
 	}
@@ -461,11 +476,50 @@ public class Generator {
 		int shiftValue = provideShiftValue(pin, alphabetLength);
 		int lengthIndex = unShiftValue(obfuscatedIndexes[0], shiftValue, alphabetLength);
 		int length = unShiftValue(obfuscatedIndexes[lengthIndex], shiftValue, alphabetLength);
+		int start = unShiftValue(obfuscatedIndexes[1], shiftValue, alphabetLength);
 		int[] clearIndexes = new int[length];
 		for (int i = 0; i < clearIndexes.length; i++) {
-			clearIndexes[i] = unShiftValue(obfuscatedIndexes[i + 1], shiftValue, alphabetLength);
+			clearIndexes[i] = unShiftValue(obfuscatedIndexes[i + start], shiftValue, alphabetLength);
 		}
 		return clearIndexes;
+	}
+
+	static int[] provideRemainingIndexes(int pwStartIndex, int pwLength, int alphabetLength) {
+		int beforePwMinIndex = pwStartIndex > RESERVED_ARRAY_INDEXES ? RESERVED_ARRAY_INDEXES : -1;
+		int beforePwMaxIndex = pwStartIndex > RESERVED_ARRAY_INDEXES ? pwStartIndex : -1;
+		int afterPwMinIndex = (pwStartIndex + pwLength) >= alphabetLength - 1 ? -1 : (pwStartIndex + pwLength);
+		int afterPwMaxIndex = (pwStartIndex + pwLength) >= alphabetLength - 1 ? -1 : alphabetLength - 1;
+
+		int remainingIndexesLength = (beforePwMaxIndex > 0 ? beforePwMaxIndex : 0)
+				+ ((pwStartIndex + pwLength) < (alphabetLength - 1) ? (alphabetLength) - (pwStartIndex + pwLength) : 0)
+				- RESERVED_ARRAY_INDEXES;
+
+		int[] remainingIndexes = new int[remainingIndexesLength];
+		if (beforePwMaxIndex > 0) {
+			for (int i = 0; i < (beforePwMaxIndex - beforePwMinIndex); i++) {
+				remainingIndexes[i] = beforePwMinIndex + i;
+			}
+		}
+		if (afterPwMaxIndex > 0) {
+			for (int i = (beforePwMaxIndex - beforePwMinIndex); i < remainingIndexes.length; i++) {
+				remainingIndexes[i] = afterPwMinIndex + (i - (beforePwMaxIndex - beforePwMinIndex));
+			}
+		}
+		return remainingIndexes;
+	}
+
+	static int[] fillEmptySpotsInObfuscatedArray(int[] obfuscatedArray, int[] remainingIndexes, int alphabetLength) {
+		int pwLengthIndex = obfuscatedArray[0];
+		if (pwLengthIndex == 0) {
+			throw new Error("Pw Length not yet assigned to obfuscated Array");
+		}
+		for (int i = 0; i < remainingIndexes.length; i++) {
+			if (remainingIndexes[i] == pwLengthIndex) {
+				continue;
+			}
+			obfuscatedArray[remainingIndexes[i]] = provideSecureRandomInteger(0, alphabetLength);
+		}
+		return obfuscatedArray;
 	}
 
 	static int shiftValue(int value, int shiftValue, int alphabetLength) {
