@@ -2,7 +2,7 @@
 # Interactive PRNG Seed Permutation PW Manager
 >## The current version is in a beta phase, but the basic functionality is in place, feel free to test it. I am happy about any feedback
 
-Since I was sick of these constant PW changes due to insecurity, I was pointed towards PW managers. However, in many case, I simply do not understand what these PW Managers are doing exactly and where my PWs are actually stored and how secure it is to pass my passwords to some external host. I decided to try to build something myself, so I have an idea about the combinatorics involved protecting my PWs. I came up with the following project.
+Since I was sick of these constant PW changes and maintenance, I was pointed towards PW managers. However, in many case, I simply do not understand what these PW Managers are doing exactly and where my PWs are actually stored and how secure it is to pass my passwords to some external host. I decided to try to build something myself, so I have an idea about the combinatorics involved protecting my PWs. I came up with the following project.
 
 - Simple password generation and PW retrieval manager.
 - Pseudo Random PW generation based on custom chosen secret permutation seed number and custom chosen secret pin number.
