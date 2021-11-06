@@ -1,6 +1,6 @@
 ![Index Generation](/misc/logo.jpg "Masked PW and Index Generation")
 
-# Interactive PRNG Seed Permutation PW Manager
+# Interactive Seed Permutation PW Manager
 
 > ## The current version is in a beta phase, but the basic functionality is in place, feel free to test it. I am happy about any feedback
 
