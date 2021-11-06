@@ -19,29 +19,50 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+import java.util.ListIterator;
+import java.util.RandomAccess;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.fusesource.jansi.AnsiConsole;
 
+/**
+ * 
+ * Interactive CSPRNG / PRNG PW Manager Encryption/Decription happens by
+ * chaining permutations based on different seed values and generation of a seed
+ * dependend surjection along with modulus circulation.
+ * <p>
+ * Password randomization/generation happens via CSPRNG
+ * <p>
+ * Alphabet permutation happens via Mersenne Twister (MT) PRNG for seed
+ * deterministic behaviour instead of LCG. MT is not used in a sequence thus no prediction of
+ * subsequent numbers is a question. Token reversal is combinatorically set to
+ * 2^128 permutations in worst case (WC) and in average case (AVGC) 2^127. To
+ * further improve security an initial randomization of the reference alphabet
+ * may be considered. This raises the permutation to 2^192 WC and 2^191 AVGC, as
+ * long as this randomization is kept secret.
+ * <p>
+ * 
+ * @author src-dbgr
+ *
+ */
 public class Generator {
-	// Custom ANSI color declaration
-	public static final String ANSI_YELLOW = "\u001B[33m";
-	public static final String ANSI_BLACK = "\u001B[30m";
-	public static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
-	// Declaring ANSI_RESET so that we can reset the color
-	public static final String ANSI_RESET = "\u001B[0m";
 
+	/**
+	 * Determines Max PW length and determines combinatorial search space for random
+	 * index assignment for PW length
+	 * <p>
+	 * MAX PW LENGTH = ALPHABET_SIZE * MIN_OBFUSCATION_OFFSET
+	 * <p>
+	 * MAX PW LENGTH = ALPHABET_SIZE - MIN_OBFUSCATION_OFFSET
+	 * <p>
+	 * Should not be smaller than 20 to keep combinatorial search space large enough
+	 */
+	public static final int OBFUSCATION_OFFSET = 20;
 	public static final int MIN_PADDING_LENGTH = 5;
 	public static final int MAX_PADDING_LENGTH = 20;
 	public static final int RESERVED_ARRAY_INDEXES = 2;
-
-	// Determines Max PW length and determines combinatorial search space for
-	// random index assignment for PW length
-	// MAX PW LENGTH = ALPHABET_SIZE - MIN_OBFUSCATION_OFFSET
-	// Should not be smaller than 20 to keep combinatorial search space large enough
-	public static final int OBFUSCATION_OFFSET = 20;
+	private static final int SHUFFLE_THRESHOLD = 5;
 
 	static Decoder decoder = Base64.getDecoder();
 	static Encoder encoder = Base64.getEncoder();
@@ -264,12 +285,17 @@ public class Generator {
 		for (char c : arr) {
 			tempList.add(c);
 		}
-		Collections.shuffle(tempList, new Random(seed));
+		shuffle(tempList, new MersenneTwister(seed));
 		String str = tempList.toString().replaceAll(",", "");
 		arr = str.substring(1, str.length() - 1).replaceAll(" ", "").toCharArray();
 		return arr;
 	}
 
+	static long provideMersenneTWisterPRNGLong(long seed) {
+		return new MersenneTwister(seed).nextLong();
+	}
+
+	// handles only positive integers
 	static int generateRandomNumber(int min, int max) {
 		int rand = -1;
 		try {
@@ -386,11 +412,10 @@ public class Generator {
 
 	// applies surjection with sumDigits
 	static int provideShiftValue(long pin, int alphabetLength) {
-		Random r = new Random(pin);
 		int cycles = sumDigits(pin);
 		long maskNumber = -1;
 		for (int i = 0; i < cycles; i++) {
-			maskNumber = Math.abs(r.nextLong());
+			maskNumber = Math.abs(provideMersenneTWisterPRNGLong(pin));
 		}
 		double p = ((double) maskNumber / (double) Long.MAX_VALUE);
 		int shiftValue = (int) Math.ceil(alphabetLength * p);
@@ -547,4 +572,43 @@ public class Generator {
 
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static void shuffle(List<?> list, MersenneTwister rnd) {
+		int size = list.size();
+		if (size < SHUFFLE_THRESHOLD || list instanceof RandomAccess) {
+			for (int i = size; i > 1; i--)
+				swap(list, i - 1, rnd.nextInt(i));
+		} else {
+			Object arr[] = list.toArray();
+
+			// Shuffle array
+			for (int i = size; i > 1; i--)
+				swap(arr, i - 1, rnd.nextInt(i));
+
+			// Dump array back into list
+			// instead of using a raw type here, it's possible to capture
+			// the wildcard but it will require a call to a supplementary
+			// private method
+			ListIterator it = list.listIterator();
+			for (Object e : arr) {
+				it.next();
+				it.set(e);
+			}
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static void swap(List<?> list, int i, int j) {
+		// instead of using a raw type here, it's possible to capture
+		// the wildcard but it will require a call to a supplementary
+		// private method
+		final List l = list;
+		l.set(i, l.set(j, l.get(i)));
+	}
+
+	private static void swap(Object[] arr, int i, int j) {
+		Object tmp = arr[i];
+		arr[i] = arr[j];
+		arr[j] = tmp;
+	}
 }

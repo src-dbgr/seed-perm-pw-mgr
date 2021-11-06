@@ -33,10 +33,9 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -83,14 +82,15 @@ public class GeneratorTest {
 	public void randomizeAlphabetTest() {
 		char[] testAlphabet = referenceAlphabet;
 		assertNotEquals(alphabet, referenceAlphabet);
-		char[] randomizedAlphabet = randomizeAlphabet(PERMUTATION_SEED, referenceAlphabet);
+		long seed = (long) PERMUTATION_SEED;
+		char[] randomizedAlphabet = randomizeAlphabet(seed, referenceAlphabet);
 		assertNotNull(randomizedAlphabet);
 		assertNotEquals(randomizedAlphabet, testAlphabet);
 		List<Character> testList = new ArrayList<>();
 		for (char c : testAlphabet) {
 			testList.add(c);
 		}
-		Collections.shuffle(testList, new Random(PERMUTATION_SEED));
+		Generator.shuffle(testList, new MersenneTwister(seed));
 		String str = testList.toString().replaceAll(",", "");
 		testAlphabet = str.substring(1, str.length() - 1).replaceAll(" ", "").toCharArray();
 		assertEquals(testAlphabet.length, randomizedAlphabet.length);
@@ -175,7 +175,7 @@ public class GeneratorTest {
 				35, 65, 9, 14, 61, 38, 43, 57, 56, 30, 80, 76, 22, 56, 18, 11, 35, 16, 14, 9, 37, 16, 49, 51, 43, 30,
 				80, 77, 61, 40, 79, 30, 6, 37, 22, 10, 30, 3, 41, 21, 15, 69, 57, 51, 32, 45, 36, 75, 54, 68, 45, 53, 9,
 				59, 56, 16, 47, 3 };
-		String expectedPw = "CUl=V#a5-%xo-LwQ%8_8so49n4/DNr%#XbSqeX.0nPD/=PzL%bSjN(*bE=eQbTU]?;#L12+KR$28/MXPCT";
+		String expectedPw = "S=KGe1:aC$_fC[yV$rMrYfR&gR*lmd$1xEB@(xL0g-l*P-5[$EBumJ.EWP(VEo=ZHI1[QAwNp;Ar*Tx-So";
 		String generatePwByIndexes = generateByIndexes(indexes, PIN, true);
 		assertEquals(expectedPw, generatePwByIndexes);
 
@@ -187,7 +187,7 @@ public class GeneratorTest {
 				67, 20, 49, 82, 79, 82, 31, 30, 77, 28, 37, 49, 60, 73, 1, 16, 27, 73, 73, 61, 21, 74, 19, 35, 40, 13,
 				33, 78, 6, 42, 81 };
 
-		expectedPw = "hQdeu2IkonWJ38m!03Kvo+fnBzEF:_[J#&moYj@_FeumB1r@?2M-szw*wpbjV=zco=PAooN]gIn(viyE_k";
+		expectedPw = "UV](sA9#fgv6brnj0bNDfwOgt5Wz)M?614nf2u/Mz(sntQd/HATCY5y.y8EueP5hfG-qffmZk9gJDX3WM#";
 		generatePwByIndexes = generateByIndexes(indexes2, PIN, true);
 		assertEquals(expectedPw, generatePwByIndexes);
 	}
@@ -353,7 +353,7 @@ public class GeneratorTest {
 
 	private BufferedReader provideBufferedReaderTokenMock() throws IOException {
 		BufferedReader brMock = Mockito.mock(BufferedReader.class);
-		String mockToken = "WzU4LCA1LCAwLCAyMywgNzcsIDE3LCA3MiwgNCwgNCwgOSwgNzYsIDQ4LCA3OCwgNDAsIDExLCA0MSwgNTYsIDE2LCA3MCwgNDAsIDI2LCA0NiwgMjQsIDI5LCA5LCA1MSwgNTksIDQ2LCAzMSwgMTAsIDEzLCA0OSwgNTQsIDEsIDc3LCA1NSwgOCwgMjQsIDYsIDE0LCA4LCAyOSwgNTIsIDUyLCA2NywgNjEsIDgsIDc3LCAyNywgNzYsIDQxLCA3LCAxOSwgODAsIDYyLCAyOCwgMTMsIDY1LCA2MywgNTQsIDI2LCA2NiwgNjQsIDQ0LCAxNSwgNzEsIDM1LCAyMSwgMzYsIDM5LCA1MSwgMzksIDgyLCA2NywgNjIsIDM1LCAxNywgNTUsIDgyLCAzOCwgOSwgMjcsIDQ5XQ==";
+		String mockToken = "WzQsIDQ4LCAzLCAyMiwgNTksIDMsIDgsIDQ2LCA4MiwgNDksIDAsIDQxLCAzNSwgMzAsIDIwLCA0MCwgMzAsIDIwLCA1OSwgMTksIDE0LCA5LCAzNiwgNTAsIDMxLCAxNSwgNDIsIDI3LCA1MSwgMiwgNjgsIDQ4LCA3NSwgNDksIDksIDQzLCA2MCwgMTIsIDczLCAzNiwgNDAsIDU4LCAzMSwgMTgsIDEsIDIwLCA1NywgMjcsIDQxLCAwLCAxNywgNSwgNzMsIDcyLCAxNywgNTQsIDUyLCA1MiwgNiwgNjYsIDQ4LCA3OCwgODEsIDMyLCA0MiwgNjcsIDQ4LCAyMCwgMjcsIDMsIDY4LCA3OSwgMzEsIDIsIDQsIDIyLCAyOSwgMjAsIDEsIDQyLCA1MSwgMSwgMTld";
 		Mockito.when(brMock.readLine()).thenReturn(mockToken, Integer.toString(PERMUTATION_SEED),
 				Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH), Integer.toString(NO_PWS));
 		return brMock;
@@ -361,7 +361,7 @@ public class GeneratorTest {
 
 	private BufferedReader provideBufferedReaderNullTokenMock() throws IOException {
 		BufferedReader brMock = Mockito.mock(BufferedReader.class);
-		String mockToken = "WzU4LCA1LCAwLCAyMywgNzcsIDE3LCA3MiwgNCwgNCwgOSwgNzYsIDQ4LCA3OCwgNDAsIDExLCA0MSwgNTYsIDE2LCA3MCwgNDAsIDI2LCA0NiwgMjQsIDI5LCA5LCA1MSwgNTksIDQ2LCAzMSwgMTAsIDEzLCA0OSwgNTQsIDEsIDc3LCA1NSwgOCwgMjQsIDYsIDE0LCA4LCAyOSwgNTIsIDUyLCA2NywgNjEsIDgsIDc3LCAyNywgNzYsIDQxLCA3LCAxOSwgODAsIDYyLCAyOCwgMTMsIDY1LCA2MywgNTQsIDI2LCA2NiwgNjQsIDQ0LCAxNSwgNzEsIDM1LCAyMSwgMzYsIDM5LCA1MSwgMzksIDgyLCA2NywgNjIsIDM1LCAxNywgNTUsIDgyLCAzOCwgOSwgMjcsIDQ5XQ==";
+		String mockToken = "WzQsIDQ4LCAzLCAyMiwgNTksIDMsIDgsIDQ2LCA4MiwgNDksIDAsIDQxLCAzNSwgMzAsIDIwLCA0MCwgMzAsIDIwLCA1OSwgMTksIDE0LCA5LCAzNiwgNTAsIDMxLCAxNSwgNDIsIDI3LCA1MSwgMiwgNjgsIDQ4LCA3NSwgNDksIDksIDQzLCA2MCwgMTIsIDczLCAzNiwgNDAsIDU4LCAzMSwgMTgsIDEsIDIwLCA1NywgMjcsIDQxLCAwLCAxNywgNSwgNzMsIDcyLCAxNywgNTQsIDUyLCA1MiwgNiwgNjYsIDQ4LCA3OCwgODEsIDMyLCA0MiwgNjcsIDQ4LCAyMCwgMjcsIDMsIDY4LCA3OSwgMzEsIDIsIDQsIDIyLCAyOSwgMjAsIDEsIDQyLCA1MSwgMSwgMTld";
 		Mockito.when(brMock.readLine()).thenReturn(mockToken, Integer.toString(PERMUTATION_SEED),
 				Integer.toString(PERMUTATION_SEED), Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH),
 				Integer.toString(NO_PWS));
