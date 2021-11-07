@@ -26,6 +26,8 @@ import java.util.RandomAccess;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.fusesource.jansi.AnsiConsole;
 
+import com.sam.key.cipher.AesGcmPw;
+
 /**
  * 
  * Interactive CSPRNG / PRNG PW Manager Encryption/Decription happens by
@@ -35,12 +37,12 @@ import org.fusesource.jansi.AnsiConsole;
  * Password randomization/generation happens via CSPRNG
  * <p>
  * Alphabet permutation happens via Mersenne Twister (MT) PRNG for seed
- * deterministic behaviour instead of LCG. MT is not used in a sequence thus no prediction of
- * subsequent numbers is a question. Token reversal is combinatorically set to
- * 2^128 permutations in worst case (WC) and in average case (AVGC) 2^127. To
- * further improve security an initial randomization of the reference alphabet
- * may be considered. This raises the permutation to 2^192 WC and 2^191 AVGC, as
- * long as this randomization is kept secret.
+ * deterministic behaviour instead of LCG. MT is not used in a sequence thus no
+ * prediction of subsequent numbers is a question. Token reversal is
+ * combinatorically set to 2^128 permutations in worst case (WC) and in average
+ * case (AVGC) 2^127. To further improve security an initial randomization of
+ * the reference alphabet may be considered. This raises the permutation to
+ * 2^192 WC and 2^191 AVGC, as long as this randomization is kept secret.
  * <p>
  * 
  * @author src-dbgr
@@ -83,11 +85,28 @@ public class Generator {
 			+ "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n"
 			+ "                                                                                        \n" + "";
 
+	static String pwd = "";
+
+	static String retrievePwd(BufferedReader br) {
+		String pw = null;
+		try {
+			System.out.println(ansi().fg(GREEN).a("Enter PW:").reset());
+			pw = br.readLine();
+			if (pw == null) {
+				throw new Error("PW is null");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return pw;
+	}
+
 	public static void main(String[] args) {
 		AnsiConsole.systemInstall();
 		System.out.println(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
 		printCLICommands();
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		retrievePwd(br);
 		int option = -1;
 		try {
 			option = Integer.parseInt(br.readLine());
@@ -172,6 +191,7 @@ public class Generator {
 		try {
 			System.out.println(ansi().fg(GREEN).a("Enter Token:").reset());
 			token = br.readLine();
+			token = AesGcmPw.decrypt(token, pwd);
 			System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset());
 			readPin = cr.readPassword();
 			long pin = Long.parseLong(new String(readPin));
@@ -328,6 +348,13 @@ public class Generator {
 		int[] indexes = generateIndexes(length, pin);
 		System.out.println(ansi().fg(GREEN).a("Token:").reset());
 		String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin);
+		try {
+			String encryptedPw = AesGcmPw.encrypt(token.getBytes(AesGcmPw.UTF_8), pwd);
+			System.out.println(encryptedPw);
+		} catch (Exception e) {
+			System.out.println("issue occured generating encrypted Pw");
+			e.printStackTrace();
+		}
 		if (hidden) {
 			printHidden(token);
 		} else {
