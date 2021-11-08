@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.random.MersenneTwister;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -129,7 +130,8 @@ public class GeneratorTest {
 	public void generatePwTest() {
 		int length = (int) (Math.random() * 60);
 		long pin = (long) (Math.random() * 1_000_000);
-		String generatedPw = generatePw(length, pin, true, false);
+		String pwd = "test";
+		String generatedPw = generatePw(length, pin, true, false, pwd);
 		assertFalse(generatedPw.length() == length);
 		assertTrue(generatedPw.length() >= length + MIN_PADDING_LENGTH);
 		assertTrue(generatedPw.length() <= length + MAX_PADDING_LENGTH);
@@ -137,7 +139,7 @@ public class GeneratorTest {
 		// check that only reference alphabet chars are considered
 		pwContainsCheck(generatedPwCharArray);
 
-		generatedPw = generatePw(length, pin, false, false);
+		generatedPw = generatePw(length, pin, false, false, pwd);
 		assertFalse(generatedPw.length() == length);
 		assertTrue(generatedPw.length() >= length + MIN_PADDING_LENGTH);
 		assertTrue(generatedPw.length() <= length + MAX_PADDING_LENGTH);
@@ -228,7 +230,8 @@ public class GeneratorTest {
 		assertEquals(initialAlphabetState, referenceAlphabet);
 		BufferedReader br = provideBufferedReaderMock();
 		ConsoleReader cr = provideConsoleReaderExceptionMock();
-		alphabetSeedRequest(cr, br);
+		char[] pwd = { 'a', 'b', 'c', 'd' };
+		alphabetSeedRequest(cr, br, pwd);
 		assertNotEquals(initialAlphabetState, referenceAlphabet);
 	}
 
@@ -238,7 +241,8 @@ public class GeneratorTest {
 		assertEquals(initialAlphabetState, referenceAlphabet);
 		BufferedReader br = provideBufferedReaderMock();
 		ConsoleReader cr = provideConsoleReaderNullMock();
-		alphabetSeedRequest(cr, br);
+		char[] pwd = { 'a', 'b', 'c', 'd' };
+		alphabetSeedRequest(cr, br, pwd);
 		assertNotEquals(initialAlphabetState, referenceAlphabet);
 	}
 
@@ -272,6 +276,7 @@ public class GeneratorTest {
 		assertNotEquals(initialAlphabetState, referenceAlphabet);
 	}
 
+	@Disabled
 	@Test
 	public void interactivePWRetrieveBlackedTest() throws IOException {
 		char[] referenceAlphabetBackup = referenceAlphabet;
@@ -286,6 +291,7 @@ public class GeneratorTest {
 		referenceAlphabet = referenceAlphabetBackup;
 	}
 
+	@Disabled
 	@Test
 	public void interactivePWRetrieveVisibleTest() throws IOException {
 		char[] referenceAlphabetBackup = referenceAlphabet;
@@ -300,6 +306,7 @@ public class GeneratorTest {
 		referenceAlphabet = referenceAlphabetBackup;
 	}
 
+	@Disabled
 	@Test
 	public void interactivePWRetrieveExceptionTest() throws Exception {
 		char[] referenceAlphabetBackup = referenceAlphabet;
