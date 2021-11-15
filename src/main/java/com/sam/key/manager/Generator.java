@@ -31,19 +31,19 @@ import com.sam.key.cipher.AesGcmPw;
 
 /**
  * 
- * Interactive CSPRNG / PRNG PW Manager Encryption/Decription happens by
- * chaining permutations based on different seed values and generation of a seed
+ * Interactive CSPRNG / PRNG PW Manager. Password encryption/decription happens
+ * by application of AES 256 GCM cipher. Further password and pin based chaining
+ * permutations based on different seed values and generation of a seed
  * dependend surjection along with modulus circulation.
  * <p>
  * Password randomization/generation happens via CSPRNG
  * <p>
  * Alphabet permutation happens via Mersenne Twister (MT) PRNG for seed
- * deterministic behaviour instead of LCG. MT is not used in a sequence thus no
- * prediction of subsequent numbers is a question. Token reversal is
- * combinatorically set to 2^128 permutations in worst case (WC) and in average
- * case (AVGC) 2^127. To further improve security an initial randomization of
- * the reference alphabet may be considered. This raises the permutation to
- * 2^192 WC and 2^191 AVGC, as long as this randomization is kept secret.
+ * deterministic behaviour instead of LCG. Token reversal is combinatorically
+ * set to 2^128 permutations in worst case (WC) and in average case (AVGC)
+ * 2^127. To further improve security an initial randomization of the reference
+ * alphabet may be considered. This raises the permutation to 2^192 WC and 2^191
+ * AVGC, as long as this randomization is kept secret.
  * <p>
  * 
  * @author src-dbgr
@@ -86,28 +86,17 @@ public class Generator {
 			+ "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n"
 			+ "                                                                                        \n" + "";
 
-//	static String retrievePwd(BufferedReader br, ConsoleReader cr) {
-	static char[] retrievePwd(ConsoleReader cr) {
-//		String pw = null;
-		char[] pw = null;
-		try {
-			System.out.println(ansi().fg(GREEN).a("Enter PW:").reset());
-			pw = cr.readPassword();
-//			pw = br.readLine();
-			if (pw == null) {
-				throw new Error("PW is null");
-			}
-		} catch (IOError e) {
-			e.printStackTrace();
-		}
-		return pw;
-	}
-
 	public static void main(String[] args) {
 		AnsiConsole.systemInstall();
 		System.out.println(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
 		printCLICommands();
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int option = readOption(br);
+		ConsoleReader cr = new ConsoleReader();
+		callToAction(br, cr, option);
+	}
+
+	static int readOption(BufferedReader br) {
 		int option = -1;
 		try {
 			option = Integer.parseInt(br.readLine());
@@ -116,7 +105,10 @@ public class Generator {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		ConsoleReader cr = new ConsoleReader();
+		return option;
+	}
+
+	static void callToAction(BufferedReader br, ConsoleReader cr, int option) {
 		switch (option) {
 		case 0:
 			interactiveIndexesGenerationHidden(br, cr);
@@ -142,6 +134,23 @@ public class Generator {
 		}
 	}
 
+//	static String retrievePwd(BufferedReader br, ConsoleReader cr) {
+	static char[] retrievePwd(ConsoleReader cr) {
+//		String pw = null;
+		char[] pw = null;
+		try {
+			System.out.println(ansi().fg(GREEN).a("Enter PW:").reset());
+			pw = cr.readPassword();
+//			pw = br.readLine();
+			if (pw == null) {
+				throw new Error("PW is null");
+			}
+		} catch (IOError e) {
+			e.printStackTrace();
+		}
+		return pw;
+	}
+
 	static void printCLICommands() {
 		System.out.println(ansi().fg(GREEN).a("Choose what you want to do:").reset());
 		System.out.println(
@@ -165,16 +174,16 @@ public class Generator {
 		return pwdConverted;
 	}
 
-	static void alphabetSeedRequest(ConsoleReader cr, BufferedReader br, char[] pwd) {
+	static void alphabetSeedRequest(ConsoleReader cr, BufferedReader br, char[] pin) {
 //		char[] seedC = null;
 		try {
 //			System.out.println(ansi().fg(GREEN).a("Enter Seed:").reset());
 //			seedC = cr.readPassword();
-			long seed = convertCharToLong(pwd);
+			long seed = convertCharToLong(pin);
 //			long seed = Long.parseLong(new String(pwd));
 			referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
 		} catch (Exception e) {
-			if (e instanceof NullPointerException && pwd == null) {
+			if (e instanceof NullPointerException && pin == null) {
 				System.out.println("Masking input not supported.. Continue with default Invocation");
 				alphabetSeedRequestOnNull(br);
 			} else {
@@ -197,7 +206,6 @@ public class Generator {
 	static void interactivePWRetrieve(boolean hidden, ConsoleReader cr, BufferedReader br) {
 		char[] pwd = retrievePwd(cr);
 		String pass = String.valueOf(pwd);
-		alphabetSeedRequest(cr, br, pwd);
 		char[] readPin = null;
 		int[] indexes = null;
 		String token = null;
@@ -207,6 +215,7 @@ public class Generator {
 			token = AesGcmPw.decrypt(token, pass);
 			System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset());
 			readPin = cr.readPassword();
+			alphabetSeedRequest(cr, br, readPin);
 			long pin = Long.parseLong(new String(readPin));
 			indexes = provideClearDecodedIndexes(decoder, token, pin);
 			if (hidden) {
@@ -262,7 +271,6 @@ public class Generator {
 	static void interactiveGenerator(boolean anonymous, boolean hidden, BufferedReader br, ConsoleReader cr) {
 		char[] pwd = retrievePwd(cr);
 		String encryptionPw = String.valueOf(pwd);
-		alphabetSeedRequest(cr, br, pwd);
 		char[] readPin = null;
 		int min = -1;
 		int max = -1;
@@ -276,6 +284,7 @@ public class Generator {
 			numPws = Integer.parseInt(br.readLine());
 			System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset());
 			readPin = cr.readPassword();
+			alphabetSeedRequest(cr, br, readPin);
 			long pin = Long.parseLong(new String(readPin));
 			printMultipleRandomPWs(min, max, numPws, pin, anonymous, hidden, encryptionPw);
 		} catch (Exception e) {

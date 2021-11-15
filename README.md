@@ -8,7 +8,7 @@ Since I was annoyed of constant PW changes and maintenance, I was pointed toward
 
 - Simple password generation and PW retrieval manager.
 - Passwords are randomly generated with CSPRNG within a provided length range.
-- PW encryption based on a chained permutation of distinct and separate seed values which are not used in a sequence.
+- PW encryption based on AES 256 GCM cipher. Internal chained alphabet permutation of distinct and separate seed values.
 - With each PW the generator creates encrypted token - These token need to be stored somewhere since they are crutial for PW retrieval.
 - PW retrieval happens by passing the token in combination with the secret permutation seed and the secret pin number.
 - No memorization of multiple passwords, simply store the resulted token somewhere and memorize your secret seed + secret pin
