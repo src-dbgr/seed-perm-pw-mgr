@@ -1,6 +1,6 @@
 ![Index Generation](/misc/logo.jpg "Masked PW and Index Generation")
 
-# Interactive Seed Permutation PW Manager
+# Interactive Permutation PW Manager
 
 > ## The current version is in a beta phase, but the basic functionality is in place, feel free to test it. I am happy about any feedback
 
@@ -41,13 +41,13 @@ Execute in PowerShell:
 Execute `run.bat` within project by double click on it, this will open the following terminal.
 ![Menu](/misc/01_pw_generation_token_menu.jpg "Menu")
 
-> Note: Choose strong secret Seed and Pin numerical values for good protection
+> Note: Choose strong secret Password [Chars and numbers] and Pin [numbers] values for good protection
 
 ![Menu](/misc/02_pw_generation_token.jpg "Menu")
 
-## Memorize the given Seed number and Pin number, choose a numerical value
+## Memorize the given Password and Pin number.
 
-- Note down the Token!
+- Note down the Token! (In later implementations this could be improved to be stored in a local db or csv etc.)
 
   > NOTE: The value can be signed!
 
@@ -57,6 +57,6 @@ Execute `run.bat` within project by double click on it, this will open the follo
 
 - **MIN Value** for the Seed and Pin is: `-9,223,372,036,854,775,808`
 
-## Retrieve PW With Indexes Array & Custom Seed Number & Custom PIN (Seed and PIN need to be the Same as have been used for the PW / Token generation)
+## Retrieve PW With Indexes Array & Custom Password & Custom PIN (Password and PIN need to be the Same as have been used for the PW / Token generation)
 
 ![Index Generation](/misc/03_pw_retrieve_token.jpg "Copy and Paste Content into Text Editor")
