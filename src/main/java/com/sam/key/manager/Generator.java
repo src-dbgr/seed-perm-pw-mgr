@@ -1,33 +1,18 @@
 package com.sam.key.manager;
 
-import static org.fusesource.jansi.Ansi.ansi;
-import static org.fusesource.jansi.Ansi.Color.BLACK;
-import static org.fusesource.jansi.Ansi.Color.GREEN;
-import static org.fusesource.jansi.Ansi.Color.MAGENTA;
-import static org.fusesource.jansi.Ansi.Color.RED;
-import static org.fusesource.jansi.Ansi.Color.WHITE;
-import static org.fusesource.jansi.Ansi.Color.YELLOW;
-
-import java.io.BufferedReader;
-import java.io.Console;
-import java.io.IOError;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.RandomAccess;
-
+import com.sam.key.cipher.AesGcmPw;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.fusesource.jansi.AnsiConsole;
 
-import com.sam.key.cipher.AesGcmPw;
+import java.io.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.*;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
+
+import static org.fusesource.jansi.Ansi.Color.*;
+import static org.fusesource.jansi.Ansi.ansi;
 
 /**
  * 

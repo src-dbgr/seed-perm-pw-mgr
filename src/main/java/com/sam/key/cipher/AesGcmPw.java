@@ -1,99 +1,78 @@
 package com.sam.key.cipher;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
-
 public class AesGcmPw {
 
-	private static final String ENCRYPT_ALGO = "AES/GCM/NoPadding";
+    private static final String ENCRYPT_ALGO = "AES/GCM/NoPadding";
 
-	private static final int TAG_LENGTH_BIT = 128; // must be one of {128, 120, 112, 104, 96}
-	private static final Nonce IV_LENGTH_BYTE = Nonce.LARGE;
-	private static final Nonce SALT_LENGTH_BYTE = Nonce.MEDIUM;
-	public static final Charset UTF_8 = StandardCharsets.UTF_8;
+    private static final int TAG_LENGTH_BIT = 128; // must be one of {128, 120, 112, 104, 96}
+    private static final Nonce IV_LENGTH_BYTE = Nonce.LARGE;
+    private static final Nonce SALT_LENGTH_BYTE = Nonce.MEDIUM;
+    public static final Charset UTF_8 = StandardCharsets.UTF_8;
 
-	public static void main(String[] args) throws Exception {
+    // return a base64 encoded AES encrypted text
+    public static String encrypt(byte[] pText, String password) throws Exception {
 
-		String OUTPUT_FORMAT = "%-30s:%s";
-		String PASSWORD = "1234512345";
-//		String pText = "AES-GSM Password-Bases encryption!";
-		String pText = "WzI0LCA2MiwgMTcsIDgxLCA3MywgNDAsIDY0LCA4MSwgNTIsIDEwLCAxOCwgMTksIDE2LCA3MywgOCwgMzksIDU2LCAyNCwgMjYsIDE1LCA1MiwgMSwgNTQsIDU2LCA3MCwgMTMsIDksIDE0LCAxOSwgMjMsIDU4LCAwLCA3NiwgNzcsIDYyLCA4LCAzOSwgNjksIDMxLCA1MCwgMzMsIDIwLCA0OSwgNzQsIDI0LCA0NCwgNzQsIDgyLCA3LCA1MCwgODAsIDYyLCAxOCwgNTksIDM3LCAzNywgNjksIDMxLCA0MCwgNjYsIDIwLCAzOSwgNDksIDIsIDQsIDQ4LCA0NSwgNDIsIDMwLCAxMSwgMTIsIDExLCA3LCAxMywgNDMsIDQ2LCA4MiwgMzEsIDcwLCAzMSwgMjIsIDQsIDMzXQ==";
+        // 16 bytes salt
+        byte[] salt = AesUtils.getRandomNonce(SALT_LENGTH_BYTE);
 
-		String encryptedTextBase64 = AesGcmPw.encrypt(pText.getBytes(UTF_8), PASSWORD);
+        // GCM recommended 12 bytes iv?
+        byte[] iv = AesUtils.getRandomNonce(IV_LENGTH_BYTE);
 
-		System.out.println("\n------ AES GCM Password-based Encryption ------");
-		System.out.println(String.format(OUTPUT_FORMAT, "Input (plain text)", pText));
-		System.out.println(String.format(OUTPUT_FORMAT, "Encrypted (base64) ", encryptedTextBase64));
+        // secret key from password
+        SecretKey aesKeyFromPassword = AesUtils.getAESKeyFromPassword(password.toCharArray(), salt);
 
-		System.out.println("\n------ AES GCM Password-based Decryption ------");
-		System.out.println(String.format(OUTPUT_FORMAT, "Input (base64)", encryptedTextBase64));
+        Cipher cipher = Cipher.getInstance(ENCRYPT_ALGO);
 
-		String decryptedText = AesGcmPw.decrypt(encryptedTextBase64, PASSWORD);
-		System.out.println(String.format(OUTPUT_FORMAT, "Decrypted (plain text)", decryptedText));
+        // ASE-GCM needs GCMParameterSpec
+        cipher.init(Cipher.ENCRYPT_MODE, aesKeyFromPassword, new GCMParameterSpec(TAG_LENGTH_BIT, iv));
 
-	}
+        byte[] cipherText = cipher.doFinal(pText);
 
-	// return a base64 encoded AES encrypted text
-	public static String encrypt(byte[] pText, String password) throws Exception {
+        // prefix IV and Salt to cipher text
+        byte[] cipherTextWithIvSalt = ByteBuffer.allocate(iv.length + salt.length + cipherText.length).put(iv).put(salt)
+                .put(cipherText).array();
 
-		// 16 bytes salt
-		byte[] salt = AesUtils.getRandomNonce(SALT_LENGTH_BYTE);
+        // string representation, base64, send this string to other for decryption.
+        return Base64.getEncoder().encodeToString(cipherTextWithIvSalt);
 
-		// GCM recommended 12 bytes iv?
-		byte[] iv = AesUtils.getRandomNonce(IV_LENGTH_BYTE);
+    }
 
-		// secret key from password
-		SecretKey aesKeyFromPassword = AesUtils.getAESKeyFromPassword(password.toCharArray(), salt);
+    // we need the same password, salt and iv to decrypt it
+    public static String decrypt(String cText, String password) throws Exception {
 
-		Cipher cipher = Cipher.getInstance(ENCRYPT_ALGO);
+        byte[] decode = Base64.getDecoder().decode(cText.getBytes(UTF_8));
 
-		// ASE-GCM needs GCMParameterSpec
-		cipher.init(Cipher.ENCRYPT_MODE, aesKeyFromPassword, new GCMParameterSpec(TAG_LENGTH_BIT, iv));
+        // get back the iv and salt from the cipher text
+        ByteBuffer bb = ByteBuffer.wrap(decode);
 
-		byte[] cipherText = cipher.doFinal(pText);
+        byte[] iv = new byte[IV_LENGTH_BYTE.getSize()];
+        bb.get(iv);
 
-		// prefix IV and Salt to cipher text
-		byte[] cipherTextWithIvSalt = ByteBuffer.allocate(iv.length + salt.length + cipherText.length).put(iv).put(salt)
-				.put(cipherText).array();
+        byte[] salt = new byte[SALT_LENGTH_BYTE.getSize()];
+        bb.get(salt);
 
-		// string representation, base64, send this string to other for decryption.
-		return Base64.getEncoder().encodeToString(cipherTextWithIvSalt);
+        byte[] cipherText = new byte[bb.remaining()];
+        bb.get(cipherText);
 
-	}
+        // get back the aes key from the same password and salt
+        SecretKey aesKeyFromPassword = AesUtils.getAESKeyFromPassword(password.toCharArray(), salt);
 
-	// we need the same password, salt and iv to decrypt it
-	public static String decrypt(String cText, String password) throws Exception {
+        Cipher cipher = Cipher.getInstance(ENCRYPT_ALGO);
 
-		byte[] decode = Base64.getDecoder().decode(cText.getBytes(UTF_8));
+        cipher.init(Cipher.DECRYPT_MODE, aesKeyFromPassword, new GCMParameterSpec(TAG_LENGTH_BIT, iv));
 
-		// get back the iv and salt from the cipher text
-		ByteBuffer bb = ByteBuffer.wrap(decode);
+        byte[] plainText = cipher.doFinal(cipherText);
 
-		byte[] iv = new byte[IV_LENGTH_BYTE.getSize()];
-		bb.get(iv);
+        return new String(plainText, UTF_8);
 
-		byte[] salt = new byte[SALT_LENGTH_BYTE.getSize()];
-		bb.get(salt);
-
-		byte[] cipherText = new byte[bb.remaining()];
-		bb.get(cipherText);
-
-		// get back the aes key from the same password and salt
-		SecretKey aesKeyFromPassword = AesUtils.getAESKeyFromPassword(password.toCharArray(), salt);
-
-		Cipher cipher = Cipher.getInstance(ENCRYPT_ALGO);
-
-		cipher.init(Cipher.DECRYPT_MODE, aesKeyFromPassword, new GCMParameterSpec(TAG_LENGTH_BIT, iv));
-
-		byte[] plainText = cipher.doFinal(cipherText);
-
-		return new String(plainText, UTF_8);
-
-	}
+    }
 
 }
