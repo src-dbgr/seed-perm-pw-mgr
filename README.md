@@ -60,3 +60,7 @@ Execute `run.bat` within project by double click on it, this will open the follo
 ## Retrieve PW With Indexes Array & Custom Password & Custom PIN (Password and PIN need to be the Same as have been used for the PW / Token generation)
 
 ![Index Generation](/misc/03_pw_retrieve_token.jpg "Copy and Paste Content into Text Editor")
+
+## Run SonarQube local analysis
+- start a local SonarQube, a Docker container for instance
+- `mvn clean verify sonar:sonar   -Dsonar.projectKey=<project key>    -Dsonar.host.url=http://localhost:9000   -Dsonar.login=<login-token> -DskipTests`

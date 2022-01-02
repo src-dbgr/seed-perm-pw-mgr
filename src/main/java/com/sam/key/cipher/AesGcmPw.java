@@ -17,6 +17,10 @@ public class AesGcmPw {
     private static final Nonce SALT_LENGTH_BYTE = Nonce.MEDIUM;
     public static final Charset UTF_8 = StandardCharsets.UTF_8;
 
+    private AesGcmPw() {
+        throw new IllegalStateException("Utility class");
+    }
+
     // return a base64 encoded AES encrypted text
     public static String encrypt(byte[] pText, String password) throws Exception {
 
