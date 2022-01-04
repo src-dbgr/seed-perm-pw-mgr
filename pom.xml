@@ -38,11 +38,15 @@
                                     <artifact>*:*</artifact>
                                     <excludes>
                                         <exclude>module-info.class</exclude>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.MF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                        <exclude>META-INF/**</exclude>
+                                        <exclude>META-INF/maven/com.sam.key/**</exclude>
+                                        <exclude>META-INF/maven/net.bytebuddy/**</exclude>
+                                        <exclude>META-INF/maven/org.apache.commons/**</exclude>
+                                        <exclude>META-INF/maven/org.fusesource.jansi/**</exclude>
+                                        <exclude>META-INF/licenses/**</exclude>
+                                        <exclude>META-INF/native-image/**</exclude>
+                                        <exclude>META-INF/versions/9/org/junit/**</exclude>
+                                        <exclude>META-INF/versions/9/module-info.class</exclude>
+                                        <exclude>META-INF/*</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
@@ -67,24 +71,6 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.0</version>
-            </plugin>
-            <plugin>
-                <groupId>com.coderplus.maven.plugins</groupId>
-                <artifactId>copy-rename-maven-plugin</artifactId>
-                <version>1.0</version>
-                <executions>
-                    <execution>
-                        <id>copy-file</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <sourceFile>${project.basedir}/src/main/resources/log4j2.properties</sourceFile>
-                            <destinationFile>${project.build.directory}/log4j2.properties</destinationFile>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

@@ -72,11 +72,14 @@ public class Generator {
             + "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n"
             + "                                                                                        \n" + "";
 
-    private static Logger log = LoggerFactory.getLogger(Generator.class);
+    static Logger log = null;
 
     public static void main(String[] args) {
         AnsiConsole.systemInstall();
         System.out.println(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
+        System.setProperty("log4j.configurationFile", "./src/main/resources/log4j2.properties");
+        log = LoggerFactory.getLogger(Generator.class);
+        System.out.println(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset()); //NOSONAR
         printCLICommands();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int option = readOption(br);
@@ -89,7 +92,7 @@ public class Generator {
         try {
             option = Integer.parseInt(br.readLine());
         } catch (Exception e) {
-            log.error("DEFAULT_ERR, please choose one of the available options.", e);
+            log.error(DEFAULT_ERR + " , please choose one of the available options.", e);
             System.exit(-1);
         }
         return option;
@@ -116,30 +119,27 @@ public class Generator {
                 interactivePWRetrieve(false, cr, br);
                 break;
             default:
-                System.out.println(ansi().fg(RED).a("This option is not available. Choose a listed option.").reset());
+                System.out.println(ansi().fg(RED).a("This option is not available. Choose a listed option.").reset()); //NOSONAR
                 break;
         }
     }
 
-    //	static String retrievePwd(BufferedReader br, ConsoleReader cr) {
     static char[] retrievePwd(ConsoleReader cr) {
-//		String pw = null;
         char[] pw = null;
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter PW:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter PW:").reset()); //NOSONAR
             pw = cr.readPassword();
-//			pw = br.readLine();
             if (pw == null) {
                 throw new Error("PW is null");
             }
         } catch (IOError e) {
-            log.error("DEFAULT_ERR.", e);
+            log.error(DEFAULT_ERR, e);
         }
         return pw;
     }
 
     static void printCLICommands() {
-        System.out.println(ansi().fg(GREEN).a("Choose what you want to do:").reset());
+        System.out.println(ansi().fg(GREEN).a("Choose what you want to do:").reset()); //NOSONAR
         System.out.println(
                 ansi().fg(GREEN).a("0").fg(YELLOW).a(" - Create Passwords - Show only Token (Hidden)").reset());
         System.out.println(
@@ -148,8 +148,8 @@ public class Generator {
                 ansi().fg(GREEN).a("2").fg(YELLOW).a(" - Create Passwords - Show PWs and Token (Hidden)").reset());
         System.out.println(
                 ansi().fg(GREEN).a("3").fg(YELLOW).a(" - Create Passwords - Show PWs and Token (Visible)").reset());
-        System.out.println(ansi().fg(GREEN).a("4").fg(YELLOW).a(" - Retrieve Password (Hidden)").reset());
-        System.out.println(ansi().fg(GREEN).a("5").fg(YELLOW).a(" - Retrieve Password (Visible)").reset());
+        System.out.println(ansi().fg(GREEN).a("4").fg(YELLOW).a(" - Retrieve Password (Hidden)").reset()); //NOSONAR
+        System.out.println(ansi().fg(GREEN).a("5").fg(YELLOW).a(" - Retrieve Password (Visible)").reset()); //NOSONAR
     }
 
     public static long convertCharToLong(char[] pwd) {
@@ -164,14 +164,14 @@ public class Generator {
     static void alphabetSeedRequest(ConsoleReader cr, BufferedReader br, char[] pin) {
 //		char[] seedC = null;
         try {
-//			System.out.println(ansi().fg(GREEN).a("Enter Seed:").reset());
+//			System.out.println(ansi().fg(GREEN).a("Enter Seed:").reset()); //NOSONAR
 //			seedC = cr.readPassword();
             long seed = convertCharToLong(pin);
 //			long seed = Long.parseLong(new String(pwd));
             referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
         } catch (Exception e) {
             if (e instanceof NullPointerException && pin == null) {
-                System.out.println("Masking input not supported.. Continue with default Invocation");
+                System.out.println("Masking input not supported.. Continue with default Invocation"); //NOSONAR
                 alphabetSeedRequestOnNull(br);
             } else {
                 log.error(DEFAULT_ERR, e);
@@ -181,7 +181,7 @@ public class Generator {
 
     static void alphabetSeedRequestOnNull(BufferedReader br) {
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter Seed: ").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter Seed: ").reset()); //NOSONAR
             String seedS = br.readLine();
             long seed = Long.parseLong(seedS);
             referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
@@ -197,10 +197,10 @@ public class Generator {
         int[] indexes = null;
         String token = null;
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter Token:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter Token:").reset()); //NOSONAR
             token = br.readLine();
             token = AesGcmPw.decrypt(token, pass);
-            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset()); //NOSONAR
             readPin = cr.readPassword();
             alphabetSeedRequest(cr, br, readPin);
             long pin = Long.parseLong(new String(readPin));
@@ -212,10 +212,10 @@ public class Generator {
             }
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
-                System.out.println("Masking input not supported.. Continue with default Invocation");
+                System.out.println("Masking input not supported.. Continue with default Invocation"); //NOSONAR
                 interactivePWRetrieveOnNull(br, hidden, token);
             } else {
-                log.error(DEFAULT_ERR + " on retrieving PW, check Stack Trace for Details: ", e);
+                log.error(DEFAULT_ERR + " on retrieving PW. Make sure your token is correct, has no line breaks or empty space. Check Stack Trace for Details: ", e);
                 System.exit(-1);
             }
             return;
@@ -224,7 +224,7 @@ public class Generator {
 
     static void interactivePWRetrieveOnNull(BufferedReader br, boolean hidden, String token) {
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset()); //NOSONAR
             String pin = br.readLine();
             long seed = Long.parseLong(pin);
             int[] indexes = provideClearDecodedIndexes(decoder, token, seed);
@@ -262,20 +262,20 @@ public class Generator {
         int max = -1;
         int numPws = -1;
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter minimal PW character length:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter minimal PW character length:").reset()); //NOSONAR
             min = Integer.parseInt(br.readLine());
-            System.out.println(ansi().fg(GREEN).a("Enter max PW character length:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter max PW character length:").reset()); //NOSONAR
             max = Integer.parseInt(br.readLine());
-            System.out.println(ansi().fg(GREEN).a("Enter number of Passwords to be created:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter number of Passwords to be created:").reset()); //NOSONAR
             numPws = Integer.parseInt(br.readLine());
-            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset()); //NOSONAR
             readPin = cr.readPassword();
             alphabetSeedRequest(cr, br, readPin);
             long pin = Long.parseLong(new String(readPin));
             printMultipleRandomPWs(min, max, numPws, pin, anonymous, hidden, encryptionPw);
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
-                System.out.println("Masking input not supported.. Continue with default Invocation");
+                System.out.println("Masking input not supported.. Continue with default Invocation"); //NOSONAR
                 interactiveGeneratorOnNull(br, min, max, numPws, anonymous, hidden, encryptionPw);
             } else {
                 log.error("Error occured on interactive PW generation, check Stack Trace for Details: ", e);
@@ -288,7 +288,7 @@ public class Generator {
     static void interactiveGeneratorOnNull(BufferedReader br, int min, int max, int numPws, boolean anonymous,
                                            boolean hidden, String encryptionPw) {
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset());
+            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset()); //NOSONAR
             String pin = br.readLine();
             long seed = Long.parseLong(pin);
             printMultipleRandomPWs(min, max, numPws, seed, anonymous, hidden, encryptionPw);
@@ -354,11 +354,11 @@ public class Generator {
         alphabet = randomizeAlphabet(pin, referenceAlphabet);
         String pw = "";
         int[] indexes = generateIndexes(length, pin);
-        System.out.println(ansi().fg(GREEN).a("Token:").reset());
+        System.out.println(ansi().fg(GREEN).a("Token:").reset()); //NOSONAR
         String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin);
         try {
             token = AesGcmPw.encrypt(token.getBytes(AesGcmPw.UTF_8), encryptionPw);
-//			System.out.println(encryptedPw);
+//			System.out.println(encryptedPw); //NOSONAR
         } catch (Exception e) {
             log.error(DEFAULT_ERR + " generating encrypted Pw: ", e);
         }
@@ -371,7 +371,7 @@ public class Generator {
             pw += alphabet[indexes[i]];
         }
         if (!anonymous) {
-            System.out.println(ansi().fg(GREEN).a("\nPW: ").reset());
+            System.out.println(ansi().fg(GREEN).a("\nPW: ").reset()); //NOSONAR
         }
         pw += padWithEmtpyString();
         return pw;
@@ -389,7 +389,7 @@ public class Generator {
         for (int i = 0; i < indexes.length; i++) {
             pw += alphabet[indexes[i]];
         }
-        System.out.println(ansi().fg(GREEN).a("\nPW: ").reset());
+        System.out.println(ansi().fg(GREEN).a("\nPW: ").reset()); //NOSONAR
         return pw;
     }
 
@@ -402,7 +402,7 @@ public class Generator {
             str += "'" + Character.toString(arr[i]) + "'";
             str += (i == arr.length - 1) ? "}" : ", ";
         }
-        System.out.println(str);
+        System.out.println(str); //NOSONAR
     }
 
     static void printMultipleRandomPWs(int rangeMin, int rangeMax, int numOfPWs, long pin, boolean anonymous,
@@ -419,7 +419,7 @@ public class Generator {
             } else {
                 printNormal(generatePw(rand, pin, hidden, anonymous, encryptionPw));
             }
-            System.out.println(ansi().fg(GREEN).a("-----------------------------------------").reset());
+            System.out.println(ansi().fg(GREEN).a("-----------------------------------------").reset()); //NOSONAR
         }
     }
 
@@ -437,11 +437,11 @@ public class Generator {
 
     static void printHidden(String message) {
         message = padWithEmtpyString() + message + padWithEmtpyString();
-        System.out.println(ansi().fg(BLACK).bg(BLACK).a(message).reset());
+        System.out.println(ansi().fg(BLACK).bg(BLACK).a(message).reset()); //NOSONAR
     }
 
     static void printNormal(String message) {
-        System.out.println(ansi().fg(MAGENTA).a(message).reset());
+        System.out.println(ansi().fg(MAGENTA).a(message).reset()); //NOSONAR
     }
 
     // applies surjection with sumDigits

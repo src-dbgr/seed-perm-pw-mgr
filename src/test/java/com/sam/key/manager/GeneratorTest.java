@@ -36,11 +36,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.random.MersenneTwister;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.sam.key.manager.Generator.ConsoleReader;
+import org.slf4j.LoggerFactory;
 
 public class GeneratorTest {
 
@@ -49,6 +51,12 @@ public class GeneratorTest {
     static final int NO_PWS = 10;
     static final int MIN_PW_LENGTH = 20;
     static final int MAX_PW_LENGTH = 30;
+
+    @BeforeAll
+    public static void init() {
+        System.setProperty("log4j.configurationFile", "./src/main/resources/log4j2.properties");
+        Generator.log = LoggerFactory.getLogger(GeneratorTest.class);
+    }
 
     @Test
     public void parseStringToIntArrTest() {
