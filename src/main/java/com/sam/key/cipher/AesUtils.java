@@ -14,10 +14,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class AesUtils {
 
-	public static void main(String[] args) {
-
-	}
-
 	public static byte[] getRandomNonce(Nonce n) {
 		byte[] nonce = new byte[n.getSize()];
 		new SecureRandom().nextBytes(nonce);

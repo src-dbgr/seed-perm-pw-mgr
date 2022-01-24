@@ -30,7 +30,6 @@
                     <exclude>META-INF/licenses/**</exclude>
                     <exclude>META-INF/native-image/**</exclude>
                     <exclude>META-INF/versions/9/org/junit/**</exclude>
-                    <exclude>META-INF/versions/9/org/junit/**</exclude>
                     <exclude>META-INF/versions/9/module-info.class</exclude>
                     <exclude>META-INF/*</exclude>
                   </excludes>
