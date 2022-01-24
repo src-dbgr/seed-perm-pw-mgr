@@ -50,8 +50,10 @@ public class Generator {
     public static final int MIN_PADDING_LENGTH = 5;
     public static final int MAX_PADDING_LENGTH = 20;
     public static final int RESERVED_ARRAY_INDEXES = 2;
+    public static final String ENTER_PIN = "Enter Pin:";
     private static final int SHUFFLE_THRESHOLD = 5;
     private static final String DEFAULT_ERR = "Issue occured";
+    public static final String CONTINUE_WITH_DEFAULT_INVOCATION = "Masking input not supported.. Continue with default Invocation";
 
     static Decoder decoder = Base64.getDecoder();
     static Encoder encoder = Base64.getEncoder();
@@ -171,7 +173,7 @@ public class Generator {
             referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
         } catch (Exception e) {
             if (e instanceof NullPointerException && pin == null) {
-                System.out.println("Masking input not supported.. Continue with default Invocation"); //NOSONAR
+                System.out.println(CONTINUE_WITH_DEFAULT_INVOCATION); //NOSONAR
                 alphabetSeedRequestOnNull(br);
             } else {
                 log.error(DEFAULT_ERR, e);
@@ -200,7 +202,7 @@ public class Generator {
             System.out.println(ansi().fg(GREEN).a("Enter Token:").reset()); //NOSONAR
             token = br.readLine();
             token = AesGcmPw.decrypt(token, pass);
-            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset()); //NOSONAR
+            System.out.println(ansi().fg(GREEN).a(ENTER_PIN).reset()); //NOSONAR
             readPin = cr.readPassword();
             alphabetSeedRequest(cr, br, readPin);
             long pin = Long.parseLong(new String(readPin));
@@ -212,7 +214,7 @@ public class Generator {
             }
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
-                System.out.println("Masking input not supported.. Continue with default Invocation"); //NOSONAR
+                System.out.println(CONTINUE_WITH_DEFAULT_INVOCATION); //NOSONAR
                 interactivePWRetrieveOnNull(br, hidden, token);
             } else {
                 log.error(DEFAULT_ERR + " on retrieving PW. Make sure your token is correct, has no line breaks or empty space. Check Stack Trace for Details: ", e);
@@ -224,7 +226,7 @@ public class Generator {
 
     static void interactivePWRetrieveOnNull(BufferedReader br, boolean hidden, String token) {
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset()); //NOSONAR
+            System.out.println(ansi().fg(GREEN).a(ENTER_PIN).reset()); //NOSONAR
             String pin = br.readLine();
             long seed = Long.parseLong(pin);
             int[] indexes = provideClearDecodedIndexes(decoder, token, seed);
@@ -268,14 +270,14 @@ public class Generator {
             max = Integer.parseInt(br.readLine());
             System.out.println(ansi().fg(GREEN).a("Enter number of Passwords to be created:").reset()); //NOSONAR
             numPws = Integer.parseInt(br.readLine());
-            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset()); //NOSONAR
+            System.out.println(ansi().fg(GREEN).a(ENTER_PIN).reset()); //NOSONAR
             readPin = cr.readPassword();
             alphabetSeedRequest(cr, br, readPin);
             long pin = Long.parseLong(new String(readPin));
             printMultipleRandomPWs(min, max, numPws, pin, anonymous, hidden, encryptionPw);
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
-                System.out.println("Masking input not supported.. Continue with default Invocation"); //NOSONAR
+                System.out.println(CONTINUE_WITH_DEFAULT_INVOCATION); //NOSONAR
                 interactiveGeneratorOnNull(br, min, max, numPws, anonymous, hidden, encryptionPw);
             } else {
                 log.error("Error occured on interactive PW generation, check Stack Trace for Details: ", e);
@@ -288,7 +290,7 @@ public class Generator {
     static void interactiveGeneratorOnNull(BufferedReader br, int min, int max, int numPws, boolean anonymous,
                                            boolean hidden, String encryptionPw) {
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter Pin:").reset()); //NOSONAR
+            System.out.println(ansi().fg(GREEN).a(ENTER_PIN).reset()); //NOSONAR
             String pin = br.readLine();
             long seed = Long.parseLong(pin);
             printMultipleRandomPWs(min, max, numPws, seed, anonymous, hidden, encryptionPw);
@@ -298,8 +300,8 @@ public class Generator {
     }
 
     static int[] parseStringToIntArr(String word) {
-        String[] stringIndexes = word.replaceAll("\\{", "").replaceAll("\\}", "").replaceAll("\\[", "")
-                .replaceAll("\\]", "").replaceAll("\\s", "").split(",");
+        String[] stringIndexes = word.replace("{", "").replace("}", "").replace("[", "")
+                .replace("]", "").replace(" ", "").split(",");
         int[] indexes = new int[stringIndexes.length];
 
         for (int i = 0; i < indexes.length; i++) {
@@ -315,8 +317,8 @@ public class Generator {
             tempList.add(c);
         }
         shuffle(tempList, new MersenneTwister(seed));
-        String str = tempList.toString().replaceAll(",", "");
-        arr = str.substring(1, str.length() - 1).replaceAll(" ", "").toCharArray();
+        String str = tempList.toString().replace(",", "");
+        arr = str.substring(1, str.length() - 1).replace(" ", "").toCharArray();
         return arr;
     }
 
