@@ -1,32 +1,12 @@
 package com.sam.key.manager;
 
-import static com.sam.key.manager.Generator.MAX_PADDING_LENGTH;
-import static com.sam.key.manager.Generator.MIN_PADDING_LENGTH;
-import static com.sam.key.manager.Generator.alphabet;
-import static com.sam.key.manager.Generator.alphabetSeedRequest;
-import static com.sam.key.manager.Generator.alphabetSeedRequestOnNull;
-import static com.sam.key.manager.Generator.generateByIndexes;
-import static com.sam.key.manager.Generator.generateIndexes;
-import static com.sam.key.manager.Generator.generatePw;
-import static com.sam.key.manager.Generator.generateRandomNumber;
-import static com.sam.key.manager.Generator.interactiveGenerator;
-import static com.sam.key.manager.Generator.interactiveIndexesGenerationHidden;
-import static com.sam.key.manager.Generator.interactiveIndexesGenerationVisible;
-import static com.sam.key.manager.Generator.interactivePWGenerationHidden;
-import static com.sam.key.manager.Generator.interactivePWGenerationVisible;
-import static com.sam.key.manager.Generator.interactivePWRetrieve;
-import static com.sam.key.manager.Generator.padWithEmtpyString;
-import static com.sam.key.manager.Generator.parseStringToIntArr;
-import static com.sam.key.manager.Generator.printCLICommands;
-import static com.sam.key.manager.Generator.printCharArrayToString;
-import static com.sam.key.manager.Generator.randomizeAlphabet;
-import static com.sam.key.manager.Generator.referenceAlphabet;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.sam.key.manager.Generator.ConsoleReader;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,14 +15,7 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.math3.random.MersenneTwister;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
-import com.sam.key.manager.Generator.ConsoleReader;
-import org.slf4j.LoggerFactory;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GeneratorTest {
 
@@ -52,54 +25,59 @@ public class GeneratorTest {
     static final int MIN_PW_LENGTH = 20;
     static final int MAX_PW_LENGTH = 30;
 
+    Generator g;
+
     @BeforeAll
     public static void init() {
         System.setProperty("log4j.configurationFile", "./src/main/resources/log4j2.properties");
         Generator.log = LoggerFactory.getLogger(GeneratorTest.class);
     }
 
+    @BeforeEach
+    public void reassign() {
+        g = new Generator();
+    }
+
     @Test
-    public void parseStringToIntArrTest() {
+    void parseStringToIntArrTest() {
         String indexes = "{21,79,57,0,6,5,39,32,29,69,29,65,72,39,28,44,0,71,10,14,21,53,16,7,3,28}";
-        int[] parseStringToIntArr = parseStringToIntArr(indexes);
+        int[] parseStringToIntArr = g.parseStringToIntArr(indexes);
         assertEquals(26, parseStringToIntArr.length);
 
         indexes = "{21,79,57,0,6}";
-        parseStringToIntArr = parseStringToIntArr(indexes);
+        parseStringToIntArr = g.parseStringToIntArr(indexes);
         assertEquals(5, parseStringToIntArr.length);
         assertEquals(57, parseStringToIntArr[2]);
 
         indexes = "21,79, 57,2,6";
-        parseStringToIntArr = parseStringToIntArr(indexes);
+        parseStringToIntArr = g.parseStringToIntArr(indexes);
         assertEquals(5, parseStringToIntArr.length);
         assertEquals(2, parseStringToIntArr[3]);
         assertEquals(6, parseStringToIntArr[4]);
     }
 
     @Test
-    public void parseStringToIntArrExceptionTest() {
+    void parseStringToIntArrExceptionTest() {
         String indexes = "{21,79,57, abc,0,6}";
-        Exception exception = assertThrows(NumberFormatException.class, () -> {
-            parseStringToIntArr(indexes);
-        });
+        Exception exception = assertThrows(NumberFormatException.class, () -> g.parseStringToIntArr(indexes));
 
         String expectedMessage = "For input string: \"abc\"";
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @Test
-    public void randomizeAlphabetTest() {
-        char[] testAlphabet = referenceAlphabet;
-        assertNotEquals(alphabet, referenceAlphabet);
-        long seed = (long) PERMUTATION_SEED;
-        char[] randomizedAlphabet = randomizeAlphabet(seed, referenceAlphabet);
+    void randomizeAlphabetTest() {
+        char[] testAlphabet = g.referenceAlphabet;
+        assertNotEquals(g.alphabet, g.referenceAlphabet);
+        long seed = PERMUTATION_SEED;
+        char[] randomizedAlphabet = g.randomizeAlphabet(seed, g.referenceAlphabet);
         assertNotNull(randomizedAlphabet);
         assertNotEquals(randomizedAlphabet, testAlphabet);
         List<Character> testList = new ArrayList<>();
         for (char c : testAlphabet) {
             testList.add(c);
         }
-        Generator.shuffle(testList, new MersenneTwister(seed));
+        g.shuffle(testList, new MersenneTwister(seed));
         String str = testList.toString().replaceAll(",", "");
         testAlphabet = str.substring(1, str.length() - 1).replaceAll(" ", "").toCharArray();
         assertEquals(testAlphabet.length, randomizedAlphabet.length);
@@ -109,61 +87,59 @@ public class GeneratorTest {
     }
 
     @Test
-    public void generateRandomNumberTest() {
+    void generateRandomNumberTest() {
         for (int i = 0; i < 100; i++) {
-            int rand = generateRandomNumber(i, (i + 1) * 10);
+            int rand = g.generateRandomNumber(i, (i + 1) * 10);
             assertTrue(rand <= ((i + 1) * 10) && rand >= i);
         }
         int rand = (int) (Math.random() * 1000);
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            generateRandomNumber(rand, rand);
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> g.generateRandomNumber(rand, rand));
         String expectedMessage = "bound must be positive";
         assertEquals(expectedMessage, exception.getMessage());
 
     }
 
     @Test
-    public void generateIndexesTest() {
+    void generateIndexesTest() {
         int length = (int) (Math.random() * 100);
         long pin = (long) (Math.random() * 1_000_000);
-        int[] generateIndexes = generateIndexes(length, pin);
-        assertTrue(generateIndexes.length == length);
-        randomizeAlphabet(pin, referenceAlphabet);
-        generateIndexes = generateIndexes(length, pin);
-        assertTrue(generateIndexes.length == length);
+        int[] generateIndexes = g.generateIndexes(length, pin);
+        assertEquals(generateIndexes.length, length);
+        g.randomizeAlphabet(pin, g.referenceAlphabet);
+        generateIndexes = g.generateIndexes(length, pin);
+        assertEquals(generateIndexes.length, length);
     }
 
     @Test
-    public void generatePwTest() {
+    void generatePwTest() {
         int length = (int) (Math.random() * 60);
         long pin = (long) (Math.random() * 1_000_000);
         String pwd = "test";
-        String generatedPw = generatePw(length, pin, true, false, pwd);
-        assertFalse(generatedPw.length() == length);
-        assertTrue(generatedPw.length() >= length + MIN_PADDING_LENGTH);
-        assertTrue(generatedPw.length() <= length + MAX_PADDING_LENGTH);
+        String generatedPw = g.generatePw(length, pin, true, false, pwd);
+        assertNotEquals(generatedPw.length(), length);
+        assertTrue(generatedPw.length() >= length + Generator.MIN_PADDING_LENGTH);
+        assertTrue(generatedPw.length() <= length + Generator.MAX_PADDING_LENGTH);
         char[] generatedPwCharArray = generatedPw.toCharArray();
         // check that only reference alphabet chars are considered
         pwContainsCheck(generatedPwCharArray);
 
-        generatedPw = generatePw(length, pin, false, false, pwd);
-        assertFalse(generatedPw.length() == length);
-        assertTrue(generatedPw.length() >= length + MIN_PADDING_LENGTH);
-        assertTrue(generatedPw.length() <= length + MAX_PADDING_LENGTH);
+        generatedPw = g.generatePw(length, pin, false, false, pwd);
+        assertNotEquals(generatedPw.length(), length);
+        assertTrue(generatedPw.length() >= length + Generator.MIN_PADDING_LENGTH);
+        assertTrue(generatedPw.length() <= length + Generator.MAX_PADDING_LENGTH);
         char[] generatedPwCharArray2 = generatedPw.toCharArray();
         pwContainsCheck(generatedPwCharArray2);
     }
 
     private void pwContainsCheck(char[] generatedPw) {
-        boolean contained = false;
-        for (int i = 0; i < generatedPw.length; i++) {
-            if (generatedPw[i] == ' ') {
+        boolean contained;
+        for (char c : generatedPw) {
+            if (c == ' ') {
                 continue;
             }
             contained = false;
-            for (int j = 0; j < referenceAlphabet.length; j++) {
-                contained = generatedPw[i] == referenceAlphabet[j];
+            for (int j = 0; j < g.referenceAlphabet.length; j++) {
+                contained = c == g.referenceAlphabet[j];
                 if (contained) {
                     break;
                 }
@@ -173,23 +149,23 @@ public class GeneratorTest {
     }
 
     @Test
-    public void padWithEmptyStringTest() {
-        String emptyString = padWithEmtpyString();
-        assertTrue(emptyString.length() >= MIN_PADDING_LENGTH);
-        assertTrue(emptyString.length() <= MAX_PADDING_LENGTH);
+    void padWithEmptyStringTest() {
+        String emptyString = g.padWithEmtpyString();
+        assertTrue(emptyString.length() >= Generator.MIN_PADDING_LENGTH);
+        assertTrue(emptyString.length() <= Generator.MAX_PADDING_LENGTH);
     }
 
     @Test
-    public void generateByIndexesTest() {
+    void generateByIndexesTest() {
         int[] indexes = {47, 41, 12, 1, 28, 57, 7, 44, 67, 43, 46, 73, 67, 51, 82, 10, 43, 53, 42, 53, 20, 73, 65, 48,
                 35, 65, 9, 14, 61, 38, 43, 57, 56, 30, 80, 76, 22, 56, 18, 11, 35, 16, 14, 9, 37, 16, 49, 51, 43, 30,
                 80, 77, 61, 40, 79, 30, 6, 37, 22, 10, 30, 3, 41, 21, 15, 69, 57, 51, 32, 45, 36, 75, 54, 68, 45, 53, 9,
                 59, 56, 16, 47, 3};
         String expectedPw = "S=KGe1:aC$_fC[yV$rMrYfR&gR*lmd$1xEB@(xL0g-l*P-5[$EBumJ.EWP(VEo=ZHI1[QAwNp;Ar*Tx-So";
-        String generatePwByIndexes = generateByIndexes(indexes, PIN, true);
+        String generatePwByIndexes = g.generateByIndexes(indexes, PIN);
         assertEquals(expectedPw, generatePwByIndexes);
 
-        generatePwByIndexes = generateByIndexes(indexes, PIN, false);
+        generatePwByIndexes = g.generateByIndexes(indexes, PIN);
         assertEquals(expectedPw, generatePwByIndexes);
 
         int[] indexes2 = {4, 10, 50, 22, 5, 45, 19, 81, 73, 35, 23, 62, 2, 53, 0, 39, 11, 2, 75, 13, 73, 36, 72, 35,
@@ -198,160 +174,156 @@ public class GeneratorTest {
                 33, 78, 6, 42, 81};
 
         expectedPw = "UV](sA9#fgv6brnj0bNDfwOgt5Wz)M?614nf2u/Mz(sntQd/HATCY5y.y8EueP5hfG-qffmZk9gJDX3WM#";
-        generatePwByIndexes = generateByIndexes(indexes2, PIN, true);
+        generatePwByIndexes = g.generateByIndexes(indexes2, PIN);
         assertEquals(expectedPw, generatePwByIndexes);
     }
 
     @Test
-    public void interactiveIndexesGenerationHiddenTest() throws IOException {
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+    void interactiveIndexesGenerationHiddenTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderMock();
         ConsoleReader cr = provideConsoleReaderMock();
-        interactiveIndexesGenerationHidden(br, cr);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.interactiveIndexesGenerationHidden(br, cr);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
     @Test
-    public void interactivePWGenerationHiddenTest() throws IOException {
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+    void interactivePWGenerationHiddenTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderMock();
         ConsoleReader cr = provideConsoleReaderMock();
-        interactivePWGenerationHidden(br, cr);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.interactivePWGenerationHidden(br, cr);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
     @Test
-    public void interactivePWGenerationVisibleTest() throws IOException {
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+    void interactivePWGenerationVisibleTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderMock();
         ConsoleReader cr = provideConsoleReaderMock();
-        interactivePWGenerationVisible(br, cr);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.interactivePWGenerationVisible(br, cr);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
     @Test
-    public void alphabetSeedRequestExceptionTest() throws IOException {
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+    void alphabetSeedRequestExceptionTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderMock();
-        ConsoleReader cr = provideConsoleReaderExceptionMock();
         char[] pwd = {'a', 'b', 'c', 'd'};
-        alphabetSeedRequest(cr, br, pwd);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.alphabetSeedRequest(br, pwd);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
     @Test
-    public void alphabetSeedRequestNullTest() throws IOException {
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+    void alphabetSeedRequestNullTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderMock();
-        ConsoleReader cr = provideConsoleReaderNullMock();
         char[] pwd = {'a', 'b', 'c', 'd'};
-        alphabetSeedRequest(cr, br, pwd);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.alphabetSeedRequest(br, pwd);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
     @Test
-    public void alphabetSeedRequestOnNullExceptionTest() throws IOException {
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+    void alphabetSeedRequestOnNullExceptionTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderExceptionMock();
-        alphabetSeedRequestOnNull(br);
-        assertEquals(initialAlphabetState, referenceAlphabet);
+        g.alphabetSeedRequestOnNull(br);
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
     @Test
-    public void interactiveGeneratorNullTest() throws IOException {
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+    void interactiveGeneratorNullTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderLongMock();
         ConsoleReader cr = provideConsoleReaderNullMock();
-        interactiveGenerator(false, false, br, cr);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.interactiveGenerator(false, false, br, cr);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
     @Test
-    public void interactiveIndexesGenerationVisibleTest() throws IOException {
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
-        printCLICommands();
+    void interactiveIndexesGenerationVisibleTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
+        g.printCLICommands();
         BufferedReader br = provideBufferedReaderMock();
         ConsoleReader cr = provideConsoleReaderMock();
-        interactiveIndexesGenerationVisible(br, cr);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.interactiveIndexesGenerationVisible(br, cr);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
     @Test
-    public void interactivePWRetrieveHiddenTest() throws IOException {
-        char[] referenceAlphabetBackup = referenceAlphabet;
+    void interactivePWRetrieveHiddenTest() throws IOException {
+        char[] referenceAlphabetBackup = g.referenceAlphabet;
 
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderTokenMock();
         ConsoleReader cr = provideConsoleReaderMock();
-        interactivePWRetrieve(true, cr, br);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.interactivePWRetrieve(true, cr, br);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
 
-        referenceAlphabet = referenceAlphabetBackup;
+        g.referenceAlphabet = referenceAlphabetBackup;
     }
 
     @Test
-    public void interactivePWRetrieveVisibleTest() throws IOException {
-        char[] referenceAlphabetBackup = referenceAlphabet;
+    void interactivePWRetrieveVisibleTest() throws IOException {
+        char[] referenceAlphabetBackup = g.referenceAlphabet;
 
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderTokenMock();
         ConsoleReader cr = provideConsoleReaderMock();
-        interactivePWRetrieve(false, cr, br);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
+        g.interactivePWRetrieve(false, cr, br);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
 
-        referenceAlphabet = referenceAlphabetBackup;
+        g.referenceAlphabet = referenceAlphabetBackup;
     }
 
     @Test
-    public void interactivePWRetrieveExceptionTest() throws Exception {
-        char[] referenceAlphabetBackup = referenceAlphabet;
+    void interactivePWRetrieveExceptionTest() throws Exception {
+        char[] referenceAlphabetBackup = g.referenceAlphabet;
 
-        char[] initialAlphabetState = referenceAlphabet;
-        assertEquals(initialAlphabetState, referenceAlphabet);
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderNullTokenMock();
         ConsoleReader cr = provideConsoleReaderNullMock();
-        interactivePWRetrieve(false, cr, br);
-        assertNotEquals(initialAlphabetState, referenceAlphabet);
-        referenceAlphabet = referenceAlphabetBackup;
+        g.interactivePWRetrieve(false, cr, br);
+        assertNotEquals(initialAlphabetState, g.referenceAlphabet);
+        g.referenceAlphabet = referenceAlphabetBackup;
     }
 
     @Test
-    public void printCharArrayNullTest() throws Exception {
-        Exception exception = assertThrows(Exception.class, () -> {
-            printCharArrayToString(null);
-        });
+    void printCharArrayNullTest() {
+        Exception exception = assertThrows(Exception.class, () -> g.printCharArrayToString(null));
         String expectedMessage = "Passed Array is null.";
         assertEquals(expectedMessage, exception.getMessage());
-        printCharArrayToString(
+        g.printCharArrayToString(
                 "{48,13,73,7,64,78,11,77,27,54,38,56,71,72,43,67,28,30,67,19,46,28,5,37,2,65,79,43,32,12,17,4}"
                         .toCharArray());
     }
 
     @Test
-    public void testPwGenerationAndRetieval() throws NoSuchAlgorithmException {
+    void testPwGenerationAndRetieval() throws NoSuchAlgorithmException {
         for (int j = 0; j < 100; j++) {
             long tempPin = SecureRandom.getInstanceStrong().nextLong();
-            int tempPWLength = (int) Math.ceil((referenceAlphabet.length - 22) * Math.random());
-            alphabet = randomizeAlphabet(tempPin, referenceAlphabet);
-            int[] indexes = generateIndexes(tempPWLength, tempPin);
-            String token = Generator.provideObfuscatedEncodedIndexes(Generator.encoder, indexes, tempPin);
-            String encodedPW = "";
-            for (int i = 0; i < indexes.length; i++) {
-                encodedPW += alphabet[indexes[i]];
+            int tempPWLength = (int) Math.ceil((g.referenceAlphabet.length - 22) * Math.random());
+            g.alphabet = g.randomizeAlphabet(tempPin, g.referenceAlphabet);
+            int[] indexes = g.generateIndexes(tempPWLength, tempPin);
+            String token = g.provideObfuscatedEncodedIndexes(g.encoder, indexes, tempPin);
+            StringBuilder encodedPW = new StringBuilder();
+            for (int index : indexes) {
+                encodedPW.append(g.alphabet[index]);
             }
-            int[] resultIndexes = Generator.provideClearDecodedIndexes(Generator.decoder, token, tempPin);
-            String decodedPW = Generator.generateByIndexes(resultIndexes, tempPin, false);
-            assertEquals(encodedPW, decodedPW);
+            int[] resultIndexes = g.provideClearDecodedIndexes(g.decoder, token, tempPin);
+            String decodedPW = g.generateByIndexes(resultIndexes, tempPin);
+            assertEquals(encodedPW.toString(), decodedPW);
         }
 
     }
@@ -365,7 +337,6 @@ public class GeneratorTest {
 
     private BufferedReader provideBufferedReaderTokenMock() throws IOException {
         BufferedReader brMock = Mockito.mock(BufferedReader.class);
-//		String mockToken = "WzQsIDQ4LCAzLCAyMiwgNTksIDMsIDgsIDQ2LCA4MiwgNDksIDAsIDQxLCAzNSwgMzAsIDIwLCA0MCwgMzAsIDIwLCA1OSwgMTksIDE0LCA5LCAzNiwgNTAsIDMxLCAxNSwgNDIsIDI3LCA1MSwgMiwgNjgsIDQ4LCA3NSwgNDksIDksIDQzLCA2MCwgMTIsIDczLCAzNiwgNDAsIDU4LCAzMSwgMTgsIDEsIDIwLCA1NywgMjcsIDQxLCAwLCAxNywgNSwgNzMsIDcyLCAxNywgNTQsIDUyLCA1MiwgNiwgNjYsIDQ4LCA3OCwgODEsIDMyLCA0MiwgNjcsIDQ4LCAyMCwgMjcsIDMsIDY4LCA3OSwgMzEsIDIsIDQsIDIyLCAyOSwgMjAsIDEsIDQyLCA1MSwgMSwgMTld";
         String mockToken = "27WfpD1yjDbwUQcPTGTEfYoOEzLJ7CReyoxeHHACGYV5v1teWvkifXfnOklpvuMvMpoyNxIFlsh1/46Ky/Zds/MVEFWp3m5qxP3dmrb98owKCGj61JwZWu6v2/gS+/ftwpPEaY9pUiaLf3L9m04WGwhyTJcWhlO+axfUnfj1ef4PcwPRRwL0UfVTTxqgblNDHG0XrnaU0qzVeX62t1lmHHOZvshChdBRCyaEpro2OGHjtgbWhEuu0eXWflj1b5Rg2jGh2Yt8P3TY0QM26yFZs8WK43vPqtsM/ER+/2CfDxLJlpUYnjKFp40OXWMkA3mny+//12ouURc6Ph0GuGvsdnzFKMv1mgpiyfrMpEvzGcm9O2Pthzc5NgW+49jQO2aq0QXSEzgrHJMqeGn8w26M9OfwGYKHdqCIsaIUAAn0xaBGYA2HOkQtjyF9dBADcb4siFna+X+Q6a8580HiDPiuEkobMPp9oxAq3i3H5kPHmCKCl7SUq7hICom7nv1wQfojg35D8VwzV6lBry2cATUdCS2idL5wAdpkSAUEelJ/JWXHRwO+PD+17fFiYupb1TSbx5+RI0dRvked3mbe2rVw6zrLgfFkYCqcP44yeHVCKyHAw+GE4IwduiSwRkj36clxOn3p61bd/4X34RYV9hCKe7udQVGJpYYiqV3IQqI48WrXabPPhQJYg1t0XrbsOdCNNsLimoWUiVSw9hNjc67B2LL/hgCDjFJixKOhP8eU7bJs+YDJ";
         Mockito.when(brMock.readLine()).thenReturn(mockToken, Integer.toString(PERMUTATION_SEED),
                 Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH), Integer.toString(NO_PWS));
@@ -394,7 +365,7 @@ public class GeneratorTest {
         return brMock;
     }
 
-    private ConsoleReader provideConsoleReaderMock() throws IOException {
+    private ConsoleReader provideConsoleReaderMock() {
         ConsoleReader consoleReaderMock = Mockito.mock(ConsoleReader.class);
         Mockito.when(consoleReaderMock.readPassword()).thenReturn(Integer.toString(PERMUTATION_SEED).toCharArray(),
                 Integer.toString(PIN).toCharArray());
@@ -403,19 +374,11 @@ public class GeneratorTest {
         return consoleReaderMock;
     }
 
-    private ConsoleReader provideConsoleReaderNullMock() throws IOException {
+    private ConsoleReader provideConsoleReaderNullMock() {
         ConsoleReader consoleReaderMock = Mockito.mock(ConsoleReader.class);
         Mockito.when(consoleReaderMock.readPassword()).thenReturn(Integer.toString(PERMUTATION_SEED).toCharArray(),
                 Integer.toString(PIN).toCharArray());
         Mockito.when(consoleReaderMock.readPassword(Mockito.anyString())).thenReturn(null);
-        return consoleReaderMock;
-    }
-
-    private ConsoleReader provideConsoleReaderExceptionMock() throws IOException {
-        ConsoleReader consoleReaderMock = Mockito.mock(ConsoleReader.class);
-        Mockito.when(consoleReaderMock.readPassword()).thenReturn(Integer.toString(PERMUTATION_SEED).toCharArray(),
-                Integer.toString(PIN).toCharArray());
-        Mockito.when(consoleReaderMock.readPassword(Mockito.anyString())).thenThrow(NullPointerException.class);
         return consoleReaderMock;
     }
 

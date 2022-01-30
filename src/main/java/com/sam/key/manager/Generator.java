@@ -3,6 +3,7 @@ package com.sam.key.manager;
 import com.sam.key.cipher.AesGcmPw;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.fusesource.jansi.AnsiConsole;
+import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,14 +14,19 @@ import java.util.*;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
 
-import static org.fusesource.jansi.Ansi.Color.*;
+import static org.fusesource.jansi.Ansi.Color.YELLOW;
+import static org.fusesource.jansi.Ansi.Color.BLACK;
+import static org.fusesource.jansi.Ansi.Color.GREEN;
+import static org.fusesource.jansi.Ansi.Color.MAGENTA;
+import static org.fusesource.jansi.Ansi.Color.WHITE;
+import static org.fusesource.jansi.Ansi.Color.RED;
 import static org.fusesource.jansi.Ansi.ansi;
 
 /**
- * Interactive CSPRNG / PRNG PW Manager. Password encryption/decription happens
+ * Interactive CSPRNG / PRNG PW Manager. Password encryption/description happens
  * by application of AES 256 GCM cipher. Further password and pin based chaining
  * permutations based on different seed values and generation of a seed
- * dependend surjection along with modulus circulation.
+ * dependent surjection along with modulus circulation.
  * <p>
  * Password randomization/generation happens via CSPRNG
  * <p>
@@ -52,44 +58,35 @@ public class Generator {
     public static final int RESERVED_ARRAY_INDEXES = 2;
     public static final String ENTER_PIN = "Enter Pin:";
     private static final int SHUFFLE_THRESHOLD = 5;
-    private static final String DEFAULT_ERR = "Issue occured";
+    private static final String DEFAULT_ERR = "Issue occurred";
     public static final String CONTINUE_WITH_DEFAULT_INVOCATION = "Masking input not supported.. Continue with default Invocation";
 
-    static Decoder decoder = Base64.getDecoder();
-    static Encoder encoder = Base64.getEncoder();
+    Decoder decoder = Base64.getDecoder();
+    Encoder encoder = Base64.getEncoder();
 
-    static char[] alphabet;
+    char[] alphabet;
 
-    static char[] referenceAlphabet = {'i', 'g', 'r', '.', 'u', '$', '&', 'G', '+', 'W', '9', 'C', 'Q', ':', 'w', 'o',
-            'j', 'L', 'y', 'A', 'O', 'v', 'U', 'Y', 'S', 'z', 'E', 'f', '*', '2', '=', '4', '%', 'B', 'K', 'T', 'm',
-            '@', '!', 'h', 'V', '/', '1', 'l', 'X', '(', '_', 'J', ')', '5', 'a', 'q', 'k', '[', '?', '=', '-', 'n',
-            'P', 's', '3', 'Z', 'N', 'M', '#', 'R', 'p', ']', '0', '7', 'D', 'x', '8', 't', '6', 'e', 'H', ';', 'I',
-            'F', 'd', 'b', 'c'};
+    char[] referenceAlphabet = {'i', 'g', 'r', '.', 'u', '$', '&', 'G', '+', 'W', '9', 'C', 'Q', ':', 'w', 'o', 'j', 'L', 'y', 'A', 'O', 'v', 'U', 'Y', 'S', 'z', 'E', 'f', '*', '2', '=', '4', '%', 'B', 'K', 'T', 'm', '@', '!', 'h', 'V', '/', '1', 'l', 'X', '(', '_', 'J', ')', '5', 'a', 'q', 'k', '[', '?', '=', '-', 'n', 'P', 's', '3', 'Z', 'N', 'M', '#', 'R', 'p', ']', '0', '7', 'D', 'x', '8', 't', '6', 'e', 'H', ';', 'I', 'F', 'd', 'b', 'c'};
 
-    static String pwMgr = "\n"
-            + "                                                                                        \n"
-            + " _____ _____ _____ ____     _____ _____ _____ _____    _____ _ _ _    _____ _____ _____ \n"
-            + "|   __|   __|   __|    \\   |  _  |   __| __  |     |  |  _  | | | |  |     |   __| __  |\n"
-            + "|__   |   __|   __|  |  |  |   __|   __|    -| | | |  |   __| | | |  | | | |  |  |    -|\n"
-            + "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n"
-            + "                                                                                        \n" + "";
+    static String pwMgr = "\n" + "                                                                                        \n" + " _____ _____ _____ ____     _____ _____ _____ _____    _____ _ _ _    _____ _____ _____ \n" + "|   __|   __|   __|    \\   |  _  |   __| __  |     |  |  _  | | | |  |     |   __| __  |\n" + "|__   |   __|   __|  |  |  |   __|   __|    -| | | |  |   __| | | |  | | | |  |  |    -|\n" + "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n" + "                                                                                        \n" + "";
 
-    static Logger log = null;
+    static Logger log;
 
     public static void main(String[] args) {
+        Generator g = new Generator();
         AnsiConsole.systemInstall();
-        System.out.println(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
+        g.printAnsi(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
         System.setProperty("log4j.configurationFile", "./src/main/resources/log4j2.properties");
         log = LoggerFactory.getLogger(Generator.class);
-        System.out.println(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset()); //NOSONAR
-        printCLICommands();
+        g.printAnsi(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
+        g.printCLICommands();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int option = readOption(br);
+        int option = g.readOption(br);
         ConsoleReader cr = new ConsoleReader();
-        callToAction(br, cr, option);
+        g.callToAction(br, cr, option);
     }
 
-    static int readOption(BufferedReader br) {
+    int readOption(BufferedReader br) {
         int option = -1;
         try {
             option = Integer.parseInt(br.readLine());
@@ -100,7 +97,7 @@ public class Generator {
         return option;
     }
 
-    static void callToAction(BufferedReader br, ConsoleReader cr, int option) {
+    void callToAction(BufferedReader br, ConsoleReader cr, int option) {
         switch (option) {
             case 0:
                 interactiveIndexesGenerationHidden(br, cr);
@@ -121,18 +118,18 @@ public class Generator {
                 interactivePWRetrieve(false, cr, br);
                 break;
             default:
-                System.out.println(ansi().fg(RED).a("This option is not available. Choose a listed option.").reset()); //NOSONAR
+                printAnsi(ansi().fg(RED).a("This option is not available. Choose a listed option.").reset());
                 break;
         }
     }
 
-    static char[] retrievePwd(ConsoleReader cr) {
+    char[] retrievePwd(ConsoleReader cr) {
         char[] pw = null;
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter PW:").reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a("Enter PW:").reset());
             pw = cr.readPassword();
             if (pw == null) {
-                throw new Error("PW is null");
+                throw new IllegalArgumentException("PW is null");
             }
         } catch (IOError e) {
             log.error(DEFAULT_ERR, e);
@@ -140,40 +137,32 @@ public class Generator {
         return pw;
     }
 
-    static void printCLICommands() {
-        System.out.println(ansi().fg(GREEN).a("Choose what you want to do:").reset()); //NOSONAR
-        System.out.println(
-                ansi().fg(GREEN).a("0").fg(YELLOW).a(" - Create Passwords - Show only Token (Hidden)").reset());
-        System.out.println(
-                ansi().fg(GREEN).a("1").fg(YELLOW).a(" - Create Passwords - Show only Token (Visible)").reset());
-        System.out.println(
-                ansi().fg(GREEN).a("2").fg(YELLOW).a(" - Create Passwords - Show PWs and Token (Hidden)").reset());
-        System.out.println(
-                ansi().fg(GREEN).a("3").fg(YELLOW).a(" - Create Passwords - Show PWs and Token (Visible)").reset());
-        System.out.println(ansi().fg(GREEN).a("4").fg(YELLOW).a(" - Retrieve Password (Hidden)").reset()); //NOSONAR
-        System.out.println(ansi().fg(GREEN).a("5").fg(YELLOW).a(" - Retrieve Password (Visible)").reset()); //NOSONAR
+    void printCLICommands() {
+        printAnsi(ansi().fg(GREEN).a("Choose what you want to do:").reset());
+        printAnsi(ansi().fg(GREEN).a("0").fg(YELLOW).a(" - Create Passwords - Show only Token (Hidden)").reset());
+        printAnsi(ansi().fg(GREEN).a("1").fg(YELLOW).a(" - Create Passwords - Show only Token (Visible)").reset());
+        printAnsi(ansi().fg(GREEN).a("2").fg(YELLOW).a(" - Create Passwords - Show PWs and Token (Hidden)").reset());
+        printAnsi(ansi().fg(GREEN).a("3").fg(YELLOW).a(" - Create Passwords - Show PWs and Token (Visible)").reset());
+        printAnsi(ansi().fg(GREEN).a("4").fg(YELLOW).a(" - Retrieve Password (Hidden)").reset());
+        printAnsi(ansi().fg(GREEN).a("5").fg(YELLOW).a(" - Retrieve Password (Visible)").reset());
     }
 
-    public static long convertCharToLong(char[] pwd) {
+    public long convertCharToLong(char[] pwd) {
         long pwdConverted = 0;
-        for (int i = 0; i < pwd.length; i++) {
-            pwdConverted += Character.getNumericValue(pwd[i]);
+        for (char c : pwd) {
+            pwdConverted += Character.getNumericValue(c);
             pwdConverted *= pwdConverted;
         }
         return pwdConverted;
     }
 
-    static void alphabetSeedRequest(ConsoleReader cr, BufferedReader br, char[] pin) {
-//		char[] seedC = null;
+    void alphabetSeedRequest(BufferedReader br, char[] pin) {
         try {
-//			System.out.println(ansi().fg(GREEN).a("Enter Seed:").reset()); //NOSONAR
-//			seedC = cr.readPassword();
             long seed = convertCharToLong(pin);
-//			long seed = Long.parseLong(new String(pwd));
             referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
         } catch (Exception e) {
             if (e instanceof NullPointerException && pin == null) {
-                System.out.println(CONTINUE_WITH_DEFAULT_INVOCATION); //NOSONAR
+                log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
                 alphabetSeedRequestOnNull(br);
             } else {
                 log.error(DEFAULT_ERR, e);
@@ -181,9 +170,9 @@ public class Generator {
         }
     }
 
-    static void alphabetSeedRequestOnNull(BufferedReader br) {
+    void alphabetSeedRequestOnNull(BufferedReader br) {
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter Seed: ").reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a("Enter Seed: ").reset());
             String seedS = br.readLine();
             long seed = Long.parseLong(seedS);
             referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
@@ -192,71 +181,70 @@ public class Generator {
         }
     }
 
-    static void interactivePWRetrieve(boolean hidden, ConsoleReader cr, BufferedReader br) {
+    void interactivePWRetrieve(boolean hidden, ConsoleReader cr, BufferedReader br) {
         char[] pwd = retrievePwd(cr);
         String pass = String.valueOf(pwd);
+        int[] indexes;
         char[] readPin = null;
-        int[] indexes = null;
         String token = null;
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter Token:").reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a("Enter Token:").reset());
             token = br.readLine();
             token = AesGcmPw.decrypt(token, pass);
-            System.out.println(ansi().fg(GREEN).a(ENTER_PIN).reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a(ENTER_PIN).reset());
             readPin = cr.readPassword();
-            alphabetSeedRequest(cr, br, readPin);
+            alphabetSeedRequest(br, readPin);
             long pin = Long.parseLong(new String(readPin));
             indexes = provideClearDecodedIndexes(decoder, token, pin);
             if (hidden) {
-                printHidden(generateByIndexes(indexes, pin, hidden));
+                printHidden(generateByIndexes(indexes, pin));
             } else {
-                printNormal(generateByIndexes(indexes, pin, hidden));
+                printNormal(generateByIndexes(indexes, pin));
             }
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
-                System.out.println(CONTINUE_WITH_DEFAULT_INVOCATION); //NOSONAR
+                log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
                 interactivePWRetrieveOnNull(br, hidden, token);
             } else {
                 log.error(DEFAULT_ERR + " on retrieving PW. Make sure your token is correct, has no line breaks or empty space. Check Stack Trace for Details: ", e);
                 System.exit(-1);
             }
-            return;
         }
     }
 
-    static void interactivePWRetrieveOnNull(BufferedReader br, boolean hidden, String token) {
+    void interactivePWRetrieveOnNull(BufferedReader br, boolean hidden, String token) {
         try {
-            System.out.println(ansi().fg(GREEN).a(ENTER_PIN).reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a(ENTER_PIN).reset());
             String pin = br.readLine();
             long seed = Long.parseLong(pin);
             int[] indexes = provideClearDecodedIndexes(decoder, token, seed);
             if (hidden) {
-                printHidden(generateByIndexes(indexes, seed, hidden));
+                printHidden(generateByIndexes(indexes, seed));
             } else {
-                printNormal(generateByIndexes(indexes, seed, hidden));
+                printNormal(generateByIndexes(indexes, seed));
             }
         } catch (IOException e) {
             log.error(DEFAULT_ERR, e);
         }
     }
 
-    static void interactiveIndexesGenerationHidden(BufferedReader br, ConsoleReader cr) {
+    void interactiveIndexesGenerationHidden(BufferedReader br, ConsoleReader cr) {
         interactiveGenerator(true, true, br, cr);
     }
 
-    static void interactivePWGenerationHidden(BufferedReader br, ConsoleReader cr) {
+    void interactivePWGenerationHidden(BufferedReader br, ConsoleReader cr) {
         interactiveGenerator(false, true, br, cr);
     }
 
-    static void interactiveIndexesGenerationVisible(BufferedReader br, ConsoleReader cr) {
+    void interactiveIndexesGenerationVisible(BufferedReader br, ConsoleReader cr) {
         interactiveGenerator(true, false, br, cr);
     }
 
-    static void interactivePWGenerationVisible(BufferedReader br, ConsoleReader cr) {
+    void interactivePWGenerationVisible(BufferedReader br, ConsoleReader cr) {
         interactiveGenerator(false, false, br, cr);
     }
 
-    static void interactiveGenerator(boolean anonymous, boolean hidden, BufferedReader br, ConsoleReader cr) {
+    void interactiveGenerator(boolean anonymous, boolean hidden, BufferedReader br, ConsoleReader cr) {
         char[] pwd = retrievePwd(cr);
         String encryptionPw = String.valueOf(pwd);
         char[] readPin = null;
@@ -264,33 +252,31 @@ public class Generator {
         int max = -1;
         int numPws = -1;
         try {
-            System.out.println(ansi().fg(GREEN).a("Enter minimal PW character length:").reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a("Enter minimal PW character length:").reset());
             min = Integer.parseInt(br.readLine());
-            System.out.println(ansi().fg(GREEN).a("Enter max PW character length:").reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a("Enter max PW character length:").reset());
             max = Integer.parseInt(br.readLine());
-            System.out.println(ansi().fg(GREEN).a("Enter number of Passwords to be created:").reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a("Enter number of Passwords to be created:").reset());
             numPws = Integer.parseInt(br.readLine());
-            System.out.println(ansi().fg(GREEN).a(ENTER_PIN).reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a(ENTER_PIN).reset());
             readPin = cr.readPassword();
-            alphabetSeedRequest(cr, br, readPin);
+            alphabetSeedRequest(br, readPin);
             long pin = Long.parseLong(new String(readPin));
             printMultipleRandomPWs(min, max, numPws, pin, anonymous, hidden, encryptionPw);
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
-                System.out.println(CONTINUE_WITH_DEFAULT_INVOCATION); //NOSONAR
+                log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
                 interactiveGeneratorOnNull(br, min, max, numPws, anonymous, hidden, encryptionPw);
             } else {
-                log.error("Error occured on interactive PW generation, check Stack Trace for Details: ", e);
+                log.error("Error occurred on interactive PW generation, check Stack Trace for Details: ", e);
                 System.exit(-1);
             }
-            return;
         }
     }
 
-    static void interactiveGeneratorOnNull(BufferedReader br, int min, int max, int numPws, boolean anonymous,
-                                           boolean hidden, String encryptionPw) {
+    void interactiveGeneratorOnNull(BufferedReader br, int min, int max, int numPws, boolean anonymous, boolean hidden, String encryptionPw) {
         try {
-            System.out.println(ansi().fg(GREEN).a(ENTER_PIN).reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a(ENTER_PIN).reset());
             String pin = br.readLine();
             long seed = Long.parseLong(pin);
             printMultipleRandomPWs(min, max, numPws, seed, anonymous, hidden, encryptionPw);
@@ -299,9 +285,8 @@ public class Generator {
         }
     }
 
-    static int[] parseStringToIntArr(String word) {
-        String[] stringIndexes = word.replace("{", "").replace("}", "").replace("[", "")
-                .replace("]", "").replace(" ", "").split(",");
+    int[] parseStringToIntArr(String word) {
+        String[] stringIndexes = word.replace("{", "").replace("}", "").replace("[", "").replace("]", "").replace(" ", "").split(",");
         int[] indexes = new int[stringIndexes.length];
 
         for (int i = 0; i < indexes.length; i++) {
@@ -310,7 +295,7 @@ public class Generator {
         return indexes;
     }
 
-    static char[] randomizeAlphabet(long seed, char[] alphabet) {
+    char[] randomizeAlphabet(long seed, char[] alphabet) {
         char[] arr = alphabet;
         List<Character> tempList = new ArrayList<>();
         for (char c : arr) {
@@ -322,12 +307,12 @@ public class Generator {
         return arr;
     }
 
-    static long provideMersenneTWisterPRNGLong(long seed) {
+    long provideMersenneTwisterPRNGLong(long seed) {
         return new MersenneTwister(seed).nextLong();
     }
 
     // handles only positive integers
-    static int generateRandomNumber(int min, int max) {
+    int generateRandomNumber(int min, int max) {
         int rand = -1;
         try {
             rand = SecureRandom.getInstanceStrong().nextInt(max - min) + min;
@@ -335,12 +320,12 @@ public class Generator {
             log.error(DEFAULT_ERR + " generating random numbers: ", e);
         }
         if (rand == -1) {
-            throw new Error(DEFAULT_ERR + " generating random numbers");
+            throw new IllegalStateException(DEFAULT_ERR + " generating random numbers, random value is -1");
         }
         return rand;
     }
 
-    static int[] generateIndexes(int length, long pin) {
+    int[] generateIndexes(int length, long pin) {
         if (alphabet == null) {
             alphabet = randomizeAlphabet(pin, referenceAlphabet);
         }
@@ -352,15 +337,14 @@ public class Generator {
         return indexes;
     }
 
-    static String generatePw(int length, long pin, boolean hidden, boolean anonymous, String encryptionPw) {
+    String generatePw(int length, long pin, boolean hidden, boolean anonymous, String encryptionPw) {
         alphabet = randomizeAlphabet(pin, referenceAlphabet);
-        String pw = "";
+        StringBuilder pw = new StringBuilder();
         int[] indexes = generateIndexes(length, pin);
-        System.out.println(ansi().fg(GREEN).a("Token:").reset()); //NOSONAR
+        printAnsi(ansi().fg(GREEN).a("Token:").reset());
         String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin);
         try {
             token = AesGcmPw.encrypt(token.getBytes(AesGcmPw.UTF_8), encryptionPw);
-//			System.out.println(encryptedPw); //NOSONAR
         } catch (Exception e) {
             log.error(DEFAULT_ERR + " generating encrypted Pw: ", e);
         }
@@ -369,96 +353,90 @@ public class Generator {
         } else {
             printNormal(token);
         }
-        for (int i = 0; i < indexes.length; i++) {
-            pw += alphabet[indexes[i]];
+        for (int index : indexes) {
+            pw.append(alphabet[index]);
         }
         if (!anonymous) {
-            System.out.println(ansi().fg(GREEN).a("\nPW: ").reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a("\nPW: ").reset());
         }
-        pw += padWithEmtpyString();
-        return pw;
+        pw.append(padWithEmtpyString());
+        return pw.toString();
     }
 
-    static String padWithEmtpyString() {
+    String padWithEmtpyString() {
         int length = generateRandomNumber(MIN_PADDING_LENGTH, MAX_PADDING_LENGTH);
-        return String.format("%1$" + length + "s", "");
+        return String.format("%1$" + length + "s", ""); //NOSONAR
     }
 
     // pass your indexes to retrieve your pwd.
-    static String generateByIndexes(int[] indexes, long pin, boolean hidden) {
+    String generateByIndexes(int[] indexes, long pin) {
         alphabet = randomizeAlphabet(pin, referenceAlphabet);
-        String pw = "";
-        for (int i = 0; i < indexes.length; i++) {
-            pw += alphabet[indexes[i]];
+        StringBuilder pw = new StringBuilder();
+        for (int index : indexes) {
+            pw.append(alphabet[index]);
         }
-        System.out.println(ansi().fg(GREEN).a("\nPW: ").reset()); //NOSONAR
-        return pw;
+        printAnsi(ansi().fg(GREEN).a("\nPW: ").reset());
+        return pw.toString();
     }
 
-    static void printCharArrayToString(char[] arr) throws Exception {
+    void printCharArrayToString(char[] arr) {
         if (arr == null) {
-            throw new Exception("Passed Array is null.");
+            throw new IllegalArgumentException("Passed Array is null.");
         }
-        String str = "alphabet: {";
+        StringBuilder str = new StringBuilder("alphabet: {");
         for (int i = 0; i < arr.length; i++) {
-            str += "'" + Character.toString(arr[i]) + "'";
-            str += (i == arr.length - 1) ? "}" : ", ";
+            str.append("'").append(arr[i]).append("'");
+            str.append((i == arr.length - 1) ? "}" : ", ");
         }
-        System.out.println(str); //NOSONAR
+        log.info(str.toString()); //NOSONAR
     }
 
-    static void printMultipleRandomPWs(int rangeMin, int rangeMax, int numOfPWs, long pin, boolean anonymous,
-                                       boolean hidden, String encryptionPw) {
+    void printMultipleRandomPWs(int rangeMin, int rangeMax, int numOfPWs, long pin, boolean anonymous, boolean hidden, String encryptionPw) {
         for (int i = 0; i < numOfPWs; i++) {
-            System.out.println(ansi().fg(GREEN)
-                    .a("\n----------------PW NO:" + ((i + 1) < 10 ? "0" + (i + 1) : (i + 1)) + "-----------------")
-                    .reset());
+            printAnsi(ansi().fg(GREEN).a("\n----------------PW NO:" + ((i + 1) < 10 ? "0" + (i + 1) : (i + 1)) + "-----------------").reset());
             int rand = generateRandomNumber(rangeMin, rangeMax);
             if (anonymous) {
-                generatePw(rand, pin, hidden, anonymous, encryptionPw);
+                generatePw(rand, pin, hidden, true, encryptionPw);
             } else if (hidden) {
-                printHidden(generatePw(rand, pin, hidden, anonymous, encryptionPw));
+                printHidden(generatePw(rand, pin, true, false, encryptionPw));
             } else {
-                printNormal(generatePw(rand, pin, hidden, anonymous, encryptionPw));
+                printNormal(generatePw(rand, pin, false, false, encryptionPw));
             }
-            System.out.println(ansi().fg(GREEN).a("-----------------------------------------").reset()); //NOSONAR
+            printAnsi(ansi().fg(GREEN).a("-----------------------------------------").reset()); //NOSONAR
         }
     }
 
-    static String provideObfuscatedEncodedIndexes(Encoder e, int[] indexes, long pin) {
+    String provideObfuscatedEncodedIndexes(Encoder e, int[] indexes, long pin) {
         int[] obfuscatedIndexes = obfuscateIndexes(indexes, referenceAlphabet.length, pin);
-        String base64EncodedArray = base64Encoding(obfuscatedIndexes, e);
-        return base64EncodedArray;
+        return base64Encoding(obfuscatedIndexes, e);
     }
 
-    static int[] provideClearDecodedIndexes(Decoder d, String encodedIndexes, long pin) {
+    int[] provideClearDecodedIndexes(Decoder d, String encodedIndexes, long pin) {
         int[] obfuscatedIndexes = base64Decoding(encodedIndexes, d);
-        int[] clearIndexes = clearObfuscatedIndexes(obfuscatedIndexes, referenceAlphabet.length, pin);
-        return clearIndexes;
+        return clearObfuscatedIndexes(obfuscatedIndexes, referenceAlphabet.length, pin);
     }
 
-    static void printHidden(String message) {
+    void printHidden(String message) {
         message = padWithEmtpyString() + message + padWithEmtpyString();
-        System.out.println(ansi().fg(BLACK).bg(BLACK).a(message).reset()); //NOSONAR
+        printAnsi(ansi().fg(BLACK).bg(BLACK).a(message).reset()); //NOSONAR
     }
 
-    static void printNormal(String message) {
-        System.out.println(ansi().fg(MAGENTA).a(message).reset()); //NOSONAR
+    void printNormal(String message) {
+        printAnsi(ansi().fg(MAGENTA).a(message).reset()); //NOSONAR
     }
 
     // applies surjection with sumDigits
-    static int provideShiftValue(long pin, int alphabetLength) {
+    int provideShiftValue(long pin, int alphabetLength) {
         int cycles = sumDigits(pin);
         long maskNumber = -1;
         for (int i = 0; i < cycles; i++) {
-            maskNumber = Math.abs(provideMersenneTWisterPRNGLong(pin));
+            maskNumber = Math.abs(provideMersenneTwisterPRNGLong(pin));
         }
         double p = ((double) maskNumber / (double) Long.MAX_VALUE);
-        int shiftValue = (int) Math.ceil(alphabetLength * p);
-        return shiftValue;
+        return (int) Math.ceil(alphabetLength * p);
     }
 
-    static int sumDigits(long num) {
+    int sumDigits(long num) {
         num = Math.abs(num);
         long sum = 0;
         while (num > 0) {
@@ -469,7 +447,7 @@ public class Generator {
     }
 
     // only deals with positive integers
-    static int provideSecureRandomInteger(int min, int max) {
+    int provideSecureRandomInteger(int min, int max) {
         int n = -1;
         try {
             n = SecureRandom.getInstanceStrong().nextInt(max - min + 1) + min;
@@ -477,30 +455,26 @@ public class Generator {
             log.error(DEFAULT_ERR, e);
         }
         if (n == -1) {
-            throw new Error(DEFAULT_ERR + " assigning random number");
+            throw new IllegalStateException(DEFAULT_ERR + " assigning random number. Random number is -1");
         }
         return n;
     }
 
-    static int[] obfuscateIndexes(int[] indexes, int alphabetLength, long pin) {
+    int[] obfuscateIndexes(int[] indexes, int alphabetLength, long pin) {
         int pwLength = indexes.length;
         int[] obfuscatedIndexes = new int[alphabetLength];
         int min = RESERVED_ARRAY_INDEXES;
-        if ((alphabetLength - (indexes.length + 1)) <= OBFUSCATION_OFFSET) {
-            throw new Error("Password too long, lower password max-length to max: "
-                    + (alphabetLength - (OBFUSCATION_OFFSET + 1)));
-        }
-        int max = (alphabetLength) - pwLength;
+        int max = alphabetLength - pwLength;
         int shiftValue = provideShiftValue(pin, alphabetLength);
-        if (max <= min) {
-            throw new Error("PW too long");
+        boolean obfuscationOffsetTooLong = (alphabetLength - (indexes.length + 1)) <= OBFUSCATION_OFFSET;
+        boolean alphabetPWLengthCritical = max <= min;
+        if (obfuscationOffsetTooLong || alphabetPWLengthCritical) {
+            throw new IllegalArgumentException("Password too long, lower password max-length to max: " + (alphabetLength - (OBFUSCATION_OFFSET + 1)));
         }
 
         int arrayStartIndex = provideSecureRandomInteger(min, max);
         obfuscatedIndexes[1] = arrayStartIndex;
-        for (int i = arrayStartIndex; i < (indexes.length + arrayStartIndex); i++) {
-            obfuscatedIndexes[i] = indexes[i - arrayStartIndex];
-        }
+        System.arraycopy(indexes, 0, obfuscatedIndexes, arrayStartIndex, indexes.length + arrayStartIndex - arrayStartIndex);
         int[] remainingIndexes = provideRemainingIndexes(arrayStartIndex, pwLength, alphabetLength);
         int random = provideSecureRandomInteger(0, remainingIndexes.length - 1);
         obfuscatedIndexes[0] = remainingIndexes[random];
@@ -512,7 +486,7 @@ public class Generator {
         return obfuscatedIndexes;
     }
 
-    static int[] clearObfuscatedIndexes(int[] obfuscatedIndexes, int alphabetLength, long pin) {
+    int[] clearObfuscatedIndexes(int[] obfuscatedIndexes, int alphabetLength, long pin) {
         int shiftValue = provideShiftValue(pin, alphabetLength);
         int lengthIndex = unShiftValue(obfuscatedIndexes[0], shiftValue, alphabetLength);
         int length = unShiftValue(obfuscatedIndexes[lengthIndex], shiftValue, alphabetLength);
@@ -524,15 +498,13 @@ public class Generator {
         return clearIndexes;
     }
 
-    static int[] provideRemainingIndexes(int pwStartIndex, int pwLength, int alphabetLength) {
+    int[] provideRemainingIndexes(int pwStartIndex, int pwLength, int alphabetLength) {
         int beforePwMinIndex = pwStartIndex > RESERVED_ARRAY_INDEXES ? RESERVED_ARRAY_INDEXES : -1;
         int beforePwMaxIndex = pwStartIndex > RESERVED_ARRAY_INDEXES ? pwStartIndex : -1;
         int afterPwMinIndex = (pwStartIndex + pwLength) >= alphabetLength - 1 ? -1 : (pwStartIndex + pwLength);
         int afterPwMaxIndex = (pwStartIndex + pwLength) >= alphabetLength - 1 ? -1 : alphabetLength - 1;
 
-        int remainingIndexesLength = (beforePwMaxIndex > 0 ? beforePwMaxIndex : 0)
-                + ((pwStartIndex + pwLength) < (alphabetLength - 1) ? (alphabetLength) - (pwStartIndex + pwLength) : 0)
-                - RESERVED_ARRAY_INDEXES;
+        int remainingIndexesLength = (Math.max(beforePwMaxIndex, 0)) + ((pwStartIndex + pwLength) < (alphabetLength - 1) ? (alphabetLength) - (pwStartIndex + pwLength) : 0) - RESERVED_ARRAY_INDEXES;
 
         int[] remainingIndexes = new int[remainingIndexesLength];
         if (beforePwMaxIndex > 0) {
@@ -548,42 +520,39 @@ public class Generator {
         return remainingIndexes;
     }
 
-    static int[] fillEmptySpotsInObfuscatedArray(int[] obfuscatedArray, int[] remainingIndexes, int alphabetLength) {
+    int[] fillEmptySpotsInObfuscatedArray(int[] obfuscatedArray, int[] remainingIndexes, int alphabetLength) {
         int pwLengthIndex = obfuscatedArray[0];
         if (pwLengthIndex == 0) {
-            throw new Error("Pw Length not yet assigned to obfuscated Array");
+            throw new IllegalStateException("Pw Length not yet assigned to obfuscated Array");
         }
-        for (int i = 0; i < remainingIndexes.length; i++) {
-            if (remainingIndexes[i] == pwLengthIndex) {
+        for (int remainingIndex : remainingIndexes) {
+            if (remainingIndex == pwLengthIndex) {
                 continue;
             }
-            obfuscatedArray[remainingIndexes[i]] = provideSecureRandomInteger(0, alphabetLength);
+            obfuscatedArray[remainingIndex] = provideSecureRandomInteger(0, alphabetLength);
         }
         return obfuscatedArray;
     }
 
-    static int shiftValue(int value, int shiftValue, int alphabetLength) {
+    int shiftValue(int value, int shiftValue, int alphabetLength) {
         return (value + shiftValue) % alphabetLength;
     }
 
-    static int unShiftValue(int value, int shiftValue, int alphabetLength) {
-        int tempIndex = (int) (value - shiftValue) % alphabetLength;
-        int actualIndex = tempIndex < 0 ? tempIndex + alphabetLength : tempIndex;
-        return actualIndex;
+    int unShiftValue(int value, int shiftValue, int alphabetLength) {
+        int tempIndex = (value - shiftValue) % alphabetLength;
+        return tempIndex < 0 ? tempIndex + alphabetLength : tempIndex;
     }
 
-    static String base64Encoding(int[] indexes, Encoder e) {
+    String base64Encoding(int[] indexes, Encoder e) {
         String string = Arrays.toString(indexes);
         byte[] bytes = string.getBytes();
-        String encodedIndexes = e.encodeToString(bytes);
-        return encodedIndexes;
+        return e.encodeToString(bytes);
     }
 
-    static int[] base64Decoding(String indexes, Decoder d) {
+    int[] base64Decoding(String indexes, Decoder d) {
         byte[] decodedBytes = d.decode(indexes);
         String decodedString = new String(decodedBytes);
-        int[] decodedIndexes = parseStringToIntArr(decodedString);
-        return decodedIndexes;
+        return parseStringToIntArr(decodedString);
     }
 
     // Wrap Console in order to ease testing and for separation of concerns
@@ -609,13 +578,13 @@ public class Generator {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public static void shuffle(List<?> list, MersenneTwister rnd) {
+    public void shuffle(List<?> list, MersenneTwister rnd) {
         int size = list.size();
         if (size < SHUFFLE_THRESHOLD || list instanceof RandomAccess) {
             for (int i = size; i > 1; i--)
                 swap(list, i - 1, rnd.nextInt(i));
         } else {
-            Object arr[] = list.toArray();
+            Object[] arr = list.toArray();
 
             // Shuffle array
             for (int i = size; i > 1; i--)
@@ -623,7 +592,7 @@ public class Generator {
 
             // Dump array back into list
             // instead of using a raw type here, it's possible to capture
-            // the wildcard but it will require a call to a supplementary
+            // the wildcard, but it will require a call to a supplementary
             // private method
             ListIterator it = list.listIterator();
             for (Object e : arr) {
@@ -634,17 +603,20 @@ public class Generator {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public static void swap(List<?> list, int i, int j) {
+    public void swap(List<?> list, int i, int j) {
         // instead of using a raw type here, it's possible to capture
-        // the wildcard but it will require a call to a supplementary
+        // the wildcard, but it will require a call to a supplementary
         // private method
-        final List l = list;
-        l.set(i, l.set(j, l.get(i)));
+        ((List) list).set(i, ((List) list).set(j, ((List) list).get(i)));
     }
 
-    private static void swap(Object[] arr, int i, int j) {
+    private void swap(Object[] arr, int i, int j) {
         Object tmp = arr[i];
         arr[i] = arr[j];
         arr[j] = tmp;
+    }
+
+    private void printAnsi(Ansi msg) {
+        System.out.println(msg); //NOSONAR
     }
 }

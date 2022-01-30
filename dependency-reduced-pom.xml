@@ -61,7 +61,7 @@
     <dependency>
       <groupId>org.junit</groupId>
       <artifactId>junit-bom</artifactId>
-      <version>5.8.1</version>
+      <version>5.8.2</version>
       <type>pom</type>
       <scope>compile</scope>
     </dependency>
@@ -70,8 +70,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jansi.version>2.4.0</jansi.version>
     <log4j.version>2.17.1</log4j.version>
-    <mockito.version>4.0.0</mockito.version>
-    <junit.jupiter.version>5.8.1</junit.jupiter.version>
+    <mockito.version>4.2.0</mockito.version>
+    <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <commons-math3.version>3.6.1</commons-math3.version>
   </properties>
 </project>
