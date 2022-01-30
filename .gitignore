@@ -1,3 +1,4 @@
 nottracked/*
 target/*
+.idea/sonarlint/*
 !target/*.jar
