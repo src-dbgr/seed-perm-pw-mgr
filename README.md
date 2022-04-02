@@ -1,4 +1,4 @@
-![Index Generation](/misc/logo.jpg "Masked PW and Index Generation")
+![Index Generation](misc/logo.jpg "Masked PW and Index Generation")
 
 # Interactive Permutation PW Manager
 
@@ -39,17 +39,18 @@ Execute in PowerShell:
 ## Example PW Generation with Custom Seed Number & Custom PIN
 
 Execute `run.bat` within project by double click on it, this will open the following terminal.
-![Menu](/misc/01_pw_generation_token_menu.jpg "Menu")
+![Menu](misc/01_pw_generation_token_menu.jpg "Menu")
 
 > Note: Choose strong secret Password [Chars and numbers] and Pin [numbers] values for good protection
 
-![Menu](/misc/02_pw_generation_token.jpg "Menu")
+![Menu](misc/02_pw_generation_token.jpg "Menu")
 
 ## Memorize the given Password and Pin number.
 
 - Note down the Token! (In later implementations this could be improved to be stored in a local db or csv etc.)
 
   > NOTE: The value can be signed!
+  >
 
   Pass an integer without comma `,` or dot `.`
 
@@ -59,7 +60,7 @@ Execute `run.bat` within project by double click on it, this will open the follo
 
 ## Retrieve PW With Indexes Array & Custom Password & Custom PIN (Password and PIN need to be the Same as have been used for the PW / Token generation)
 
-![Index Generation](/misc/03_pw_retrieve_token.jpg "Copy and Paste Content into Text Editor")
+![Index Generation](misc/03_pw_retrieve_token.jpg "Copy and Paste Content into Text Editor")
 
 ## Run SonarQube local analysis
 - start a local SonarQube, a Docker container for instance
