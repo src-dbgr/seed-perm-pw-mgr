@@ -71,6 +71,7 @@ public class Generator {
     static String pwMgr = "\n" + "                                                                                        \n" + " _____ _____ _____ ____     _____ _____ _____ _____    _____ _ _ _    _____ _____ _____ \n" + "|   __|   __|   __|    \\   |  _  |   __| __  |     |  |  _  | | | |  |     |   __| __  |\n" + "|__   |   __|   __|  |  |  |   __|   __|    -| | | |  |   __| | | |  | | | |  |  |    -|\n" + "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n" + "                                                                                        \n" + "";
 
     static Logger log;
+    private boolean randomized = false;
 
     public static void main(String[] args) {
         Generator g = new Generator();
@@ -100,10 +101,10 @@ public class Generator {
     void callToAction(BufferedReader br, ConsoleReader cr, int option) {
         switch (option) {
             case 0:
-                interactiveIndexesGenerationHidden(br, cr);
+                interactiveTokenGenerationHidden(br, cr);
                 break;
             case 1:
-                interactiveIndexesGenerationVisible(br, cr);
+                interactiveTokenGenerationVisible(br, cr);
                 break;
             case 2:
                 interactivePWGenerationHidden(br, cr);
@@ -158,8 +159,7 @@ public class Generator {
 
     void alphabetSeedRequest(BufferedReader br, char[] pin) {
         try {
-            long seed = convertCharToLong(pin);
-            referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
+            shuffleAlphabetByPin(pin);
         } catch (Exception e) {
             if (e instanceof NullPointerException && pin == null) {
                 log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
@@ -167,6 +167,14 @@ public class Generator {
             } else {
                 log.error(DEFAULT_ERR, e);
             }
+        }
+    }
+
+    private void shuffleAlphabetByPin(char[] pin) {
+        long seed = convertCharToLong(pin);
+        if (!randomized) {
+            referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
+            randomized = !randomized;
         }
     }
 
@@ -228,7 +236,7 @@ public class Generator {
         }
     }
 
-    void interactiveIndexesGenerationHidden(BufferedReader br, ConsoleReader cr) {
+    void interactiveTokenGenerationHidden(BufferedReader br, ConsoleReader cr) {
         interactiveGenerator(true, true, br, cr);
     }
 
@@ -236,7 +244,7 @@ public class Generator {
         interactiveGenerator(false, true, br, cr);
     }
 
-    void interactiveIndexesGenerationVisible(BufferedReader br, ConsoleReader cr) {
+    void interactiveTokenGenerationVisible(BufferedReader br, ConsoleReader cr) {
         interactiveGenerator(true, false, br, cr);
     }
 
@@ -337,6 +345,27 @@ public class Generator {
         return indexes;
     }
 
+    public Map<String, String> provideTokenAndPw(int length, long pin, String encryptionPw) {
+        shuffleAlphabetByPin(String.valueOf(pin).toCharArray());
+        alphabet = randomizeAlphabet(pin, referenceAlphabet);
+        int[] indexes = generateIndexes(length, pin);
+        String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin);
+        try {
+            token = AesGcmPw.encrypt(token.getBytes(AesGcmPw.UTF_8), encryptionPw);
+        } catch (Exception e) {
+            log.error(DEFAULT_ERR + " generating encrypted Pw: ", e);
+        }
+        StringBuilder pw = new StringBuilder();
+        for (int index : indexes) {
+            pw.append(alphabet[index]);
+        }
+        return Map.of("token", token, "pw", pw.toString());
+    }
+
+    public String provideToken(int length, long pin, String encryptionPw) {
+        return provideTokenAndPw(length, pin, encryptionPw).get("token");
+    }
+
     String generatePw(int length, long pin, boolean hidden, boolean anonymous, String encryptionPw) {
         alphabet = randomizeAlphabet(pin, referenceAlphabet);
         StringBuilder pw = new StringBuilder();
@@ -391,7 +420,7 @@ public class Generator {
         log.info(str.toString()); //NOSONAR
     }
 
-    void printMultipleRandomPWs(int rangeMin, int rangeMax, int numOfPWs, long pin, boolean anonymous, boolean hidden, String encryptionPw) {
+    public void printMultipleRandomPWs(int rangeMin, int rangeMax, int numOfPWs, long pin, boolean anonymous, boolean hidden, String encryptionPw) {
         for (int i = 0; i < numOfPWs; i++) {
             printAnsi(ansi().fg(GREEN).a("\n----------------PW NO:" + ((i + 1) < 10 ? "0" + (i + 1) : (i + 1)) + "-----------------").reset());
             int rand = generateRandomNumber(rangeMin, rangeMax);

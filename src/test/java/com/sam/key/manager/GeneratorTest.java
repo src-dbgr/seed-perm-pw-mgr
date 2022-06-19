@@ -184,7 +184,7 @@ public class GeneratorTest {
         assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderMock();
         ConsoleReader cr = provideConsoleReaderMock();
-        g.interactiveIndexesGenerationHidden(br, cr);
+        g.interactiveTokenGenerationHidden(br, cr);
         assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
@@ -254,7 +254,7 @@ public class GeneratorTest {
         g.printCLICommands();
         BufferedReader br = provideBufferedReaderMock();
         ConsoleReader cr = provideConsoleReaderMock();
-        g.interactiveIndexesGenerationVisible(br, cr);
+        g.interactiveTokenGenerationVisible(br, cr);
         assertNotEquals(initialAlphabetState, g.referenceAlphabet);
     }
 
