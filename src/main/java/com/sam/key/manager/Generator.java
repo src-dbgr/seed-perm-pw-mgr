@@ -220,6 +220,20 @@ public class Generator {
         }
     }
 
+    public String getPWfromToken(String pass, long pin, String token) {
+        String pw = "";
+        try {
+            char[] pinArr = Long.toString(pin).toCharArray();
+            token = AesGcmPw.decrypt(token, pass);
+            shuffleAlphabetByPin(pinArr);
+            int[] indexes = provideClearDecodedIndexes(decoder, token, pin);
+            pw = generateByIndexes(indexes, pin);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pw;
+    }
+
     void interactivePWRetrieveOnNull(BufferedReader br, boolean hidden, String token) {
         try {
             printAnsi(ansi().fg(GREEN).a(ENTER_PIN).reset());
