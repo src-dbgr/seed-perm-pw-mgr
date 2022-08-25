@@ -161,7 +161,7 @@ public class Generator {
         try {
             shuffleAlphabetByPin(pin);
         } catch (Exception e) {
-            if (e instanceof NullPointerException && pin == null) {
+            if (e instanceof NullPointerException && pin == null && br != null) {
                 log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
                 alphabetSeedRequestOnNull(br);
             } else {
@@ -192,22 +192,18 @@ public class Generator {
     void interactivePWRetrieve(boolean hidden, ConsoleReader cr, BufferedReader br) {
         char[] pwd = retrievePwd(cr);
         String pass = String.valueOf(pwd);
-        int[] indexes;
         char[] readPin = null;
         String token = null;
         try {
             printAnsi(ansi().fg(GREEN).a("Enter Token:").reset());
             token = br.readLine();
-            token = AesGcmPw.decrypt(token, pass);
             printAnsi(ansi().fg(GREEN).a(ENTER_PIN).reset());
             readPin = cr.readPassword();
-            alphabetSeedRequest(br, readPin);
             long pin = Long.parseLong(new String(readPin));
-            indexes = provideClearDecodedIndexes(decoder, token, pin);
             if (hidden) {
-                printHidden(generateByIndexes(indexes, pin));
+                printHidden(getPWfromToken(pass, pin, token, br));
             } else {
-                printNormal(generateByIndexes(indexes, pin));
+                printNormal(getPWfromToken(pass, pin, token, br));
             }
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
@@ -220,18 +216,22 @@ public class Generator {
         }
     }
 
-    public String getPWfromToken(String pass, long pin, String token) {
+    String getPWfromToken(String pass, long pin, String token, BufferedReader br) {
         String pw = "";
         try {
             char[] pinArr = Long.toString(pin).toCharArray();
             token = AesGcmPw.decrypt(token, pass);
-            shuffleAlphabetByPin(pinArr);
+            alphabetSeedRequest(br, pinArr);
             int[] indexes = provideClearDecodedIndexes(decoder, token, pin);
             pw = generateByIndexes(indexes, pin);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return pw;
+    }
+
+    public String getPWfromToken(String pass, long pin, String token) {
+        return getPWfromToken(pass, pin, token, null);
     }
 
     void interactivePWRetrieveOnNull(BufferedReader br, boolean hidden, String token) {
