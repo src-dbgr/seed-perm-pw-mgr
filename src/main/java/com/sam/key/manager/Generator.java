@@ -512,7 +512,7 @@ public class Generator {
         boolean obfuscationOffsetTooLong = (alphabetLength - (indexes.length + 1)) <= OBFUSCATION_OFFSET;
         boolean alphabetPWLengthCritical = max <= min;
         if (obfuscationOffsetTooLong || alphabetPWLengthCritical) {
-            throw new IllegalArgumentException("Password too long, lower password max-length to max: " + (alphabetLength - (OBFUSCATION_OFFSET + 1)));
+            throw new IllegalArgumentException("Password too long, lower password max-length to max: " + (alphabetLength - (OBFUSCATION_OFFSET + 2)));
         }
 
         int arrayStartIndex = provideSecureRandomInteger(min, max);
