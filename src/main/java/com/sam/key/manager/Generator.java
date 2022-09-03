@@ -61,6 +61,8 @@ public class Generator {
     private static final String DEFAULT_ERR = "Issue occurred";
     public static final String CONTINUE_WITH_DEFAULT_INVOCATION = "Masking input not supported.. Continue with default Invocation";
 
+    static final int OBFUSCATION_ARRAY_SIZE = 100;
+
     Decoder decoder = Base64.getDecoder();
     Encoder encoder = Base64.getEncoder();
 
@@ -85,6 +87,15 @@ public class Generator {
         int option = g.readOption(br);
         ConsoleReader cr = new ConsoleReader();
         g.callToAction(br, cr, option);
+    }
+
+    public Generator setReferenceAlphabet(char[] referenceAlphabet) {
+        this.referenceAlphabet = referenceAlphabet;
+        return this;
+    }
+
+    public char[] getReferenceAlphabet() {
+        return this.referenceAlphabet;
     }
 
     int readOption(BufferedReader br) {
@@ -201,9 +212,9 @@ public class Generator {
             readPin = cr.readPassword();
             long pin = Long.parseLong(new String(readPin));
             if (hidden) {
-                printHidden(getPWfromToken(pass, pin, token, br));
+                printHidden(providePwFromToken(pass, pin, token, br));
             } else {
-                printNormal(getPWfromToken(pass, pin, token, br));
+                printNormal(providePwFromToken(pass, pin, token, br));
             }
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
@@ -216,7 +227,7 @@ public class Generator {
         }
     }
 
-    String getPWfromToken(String pass, long pin, String token, BufferedReader br) {
+    String providePwFromToken(String pass, long pin, String token, BufferedReader br) {
         String pw = "";
         try {
             char[] pinArr = Long.toString(pin).toCharArray();
@@ -231,7 +242,7 @@ public class Generator {
     }
 
     public String getPWfromToken(String pass, long pin, String token) {
-        return getPWfromToken(pass, pin, token, null);
+        return providePwFromToken(pass, pin, token, null);
     }
 
     void interactivePWRetrieveOnNull(BufferedReader br, boolean hidden, String token) {
@@ -450,13 +461,13 @@ public class Generator {
     }
 
     String provideObfuscatedEncodedIndexes(Encoder e, int[] indexes, long pin) {
-        int[] obfuscatedIndexes = obfuscateIndexes(indexes, referenceAlphabet.length, pin);
+        int[] obfuscatedIndexes = obfuscateIndexes(indexes, pin);
         return base64Encoding(obfuscatedIndexes, e);
     }
 
     int[] provideClearDecodedIndexes(Decoder d, String encodedIndexes, long pin) {
         int[] obfuscatedIndexes = base64Decoding(encodedIndexes, d);
-        return clearObfuscatedIndexes(obfuscatedIndexes, referenceAlphabet.length, pin);
+        return clearObfuscatedIndexes(obfuscatedIndexes, pin);
     }
 
     void printHidden(String message) {
@@ -469,14 +480,14 @@ public class Generator {
     }
 
     // applies surjection with sumDigits
-    int provideShiftValue(long pin, int alphabetLength) {
+    int provideShiftValue(long pin) {
         int cycles = sumDigits(pin);
         long maskNumber = -1;
         for (int i = 0; i < cycles; i++) {
             maskNumber = Math.abs(provideMersenneTwisterPRNGLong(pin));
         }
         double p = ((double) maskNumber / (double) Long.MAX_VALUE);
-        return (int) Math.ceil(alphabetLength * p);
+        return (int) Math.ceil(OBFUSCATION_ARRAY_SIZE * p);
     }
 
     int sumDigits(long num) {
@@ -503,51 +514,56 @@ public class Generator {
         return n;
     }
 
-    int[] obfuscateIndexes(int[] indexes, int alphabetLength, long pin) {
+    int[] obfuscateIndexes(int[] indexes, long pin) {
         int pwLength = indexes.length;
-        int[] obfuscatedIndexes = new int[alphabetLength];
+        int[] obfuscatedIndexes = new int[OBFUSCATION_ARRAY_SIZE];
         int min = RESERVED_ARRAY_INDEXES;
-        int max = alphabetLength - pwLength;
-        int shiftValue = provideShiftValue(pin, alphabetLength);
-        boolean obfuscationOffsetTooLong = (alphabetLength - (indexes.length + 1)) <= OBFUSCATION_OFFSET;
+        int max = OBFUSCATION_ARRAY_SIZE - pwLength;
+        int shiftValue = provideShiftValue(pin);
+        boolean obfuscationOffsetTooLong = (OBFUSCATION_ARRAY_SIZE - (pwLength + 1)) <= OBFUSCATION_OFFSET;
         boolean alphabetPWLengthCritical = max <= min;
         if (obfuscationOffsetTooLong || alphabetPWLengthCritical) {
-            throw new IllegalArgumentException("Password too long, lower password max-length to max: " + (alphabetLength - (OBFUSCATION_OFFSET + 2)));
+            throw new IllegalArgumentException("Password too long, lower password max-length to max: " + (OBFUSCATION_ARRAY_SIZE - (OBFUSCATION_OFFSET + 2)));
         }
 
         int arrayStartIndex = provideSecureRandomInteger(min, max);
         obfuscatedIndexes[1] = arrayStartIndex;
-        System.arraycopy(indexes, 0, obfuscatedIndexes, arrayStartIndex, indexes.length + arrayStartIndex - arrayStartIndex);
-        int[] remainingIndexes = provideRemainingIndexes(arrayStartIndex, pwLength, alphabetLength);
+        System.arraycopy(indexes, 0, obfuscatedIndexes, arrayStartIndex, indexes.length);
+        int[] remainingIndexes = provideRemainingIndexes(arrayStartIndex, pwLength);
         int random = provideSecureRandomInteger(0, remainingIndexes.length - 1);
         obfuscatedIndexes[0] = remainingIndexes[random];
         obfuscatedIndexes[obfuscatedIndexes[0]] = pwLength;
-        obfuscatedIndexes = fillEmptySpotsInObfuscatedArray(obfuscatedIndexes, remainingIndexes, alphabetLength);
+        obfuscatedIndexes = fillEmptySpotsInObfuscatedArray(obfuscatedIndexes, remainingIndexes, referenceAlphabet.length);
         for (int i = 0; i < obfuscatedIndexes.length; i++) {
-            obfuscatedIndexes[i] = shiftValue(obfuscatedIndexes[i], shiftValue, alphabetLength);
+            obfuscatedIndexes[i] = shiftValue(obfuscatedIndexes[i], shiftValue);
         }
         return obfuscatedIndexes;
     }
 
-    int[] clearObfuscatedIndexes(int[] obfuscatedIndexes, int alphabetLength, long pin) {
-        int shiftValue = provideShiftValue(pin, alphabetLength);
-        int lengthIndex = unShiftValue(obfuscatedIndexes[0], shiftValue, alphabetLength);
-        int length = unShiftValue(obfuscatedIndexes[lengthIndex], shiftValue, alphabetLength);
-        int start = unShiftValue(obfuscatedIndexes[1], shiftValue, alphabetLength);
-        int[] clearIndexes = new int[length];
-        for (int i = 0; i < clearIndexes.length; i++) {
-            clearIndexes[i] = unShiftValue(obfuscatedIndexes[i + start], shiftValue, alphabetLength);
+    int[] clearObfuscatedIndexes(int[] obfuscatedIndexes, long pin) {
+        try {
+            int shiftValue = provideShiftValue(pin);
+            int lengthIndex = unShiftValue(obfuscatedIndexes[0], shiftValue);
+            int length = unShiftValue(obfuscatedIndexes[lengthIndex], shiftValue);
+            int start = unShiftValue(obfuscatedIndexes[1], shiftValue);
+            int[] clearIndexes = new int[length];
+            for (int i = 0; i < clearIndexes.length; i++) {
+                clearIndexes[i] = unShiftValue(obfuscatedIndexes[i + start], shiftValue);
+            }
+            return clearIndexes;
+        } catch (Exception e) {
+            log.error("Issue clearing obfuscated Indexes ", e);
         }
-        return clearIndexes;
+        return new int[0];
     }
 
-    int[] provideRemainingIndexes(int pwStartIndex, int pwLength, int alphabetLength) {
+    int[] provideRemainingIndexes(int pwStartIndex, int pwLength) {
         int beforePwMinIndex = pwStartIndex > RESERVED_ARRAY_INDEXES ? RESERVED_ARRAY_INDEXES : -1;
         int beforePwMaxIndex = pwStartIndex > RESERVED_ARRAY_INDEXES ? pwStartIndex : -1;
-        int afterPwMinIndex = (pwStartIndex + pwLength) >= alphabetLength - 1 ? -1 : (pwStartIndex + pwLength);
-        int afterPwMaxIndex = (pwStartIndex + pwLength) >= alphabetLength - 1 ? -1 : alphabetLength - 1;
+        int afterPwMinIndex = (pwStartIndex + pwLength) >= OBFUSCATION_ARRAY_SIZE - 1 ? -1 : (pwStartIndex + pwLength);
+        int afterPwMaxIndex = (pwStartIndex + pwLength) >= OBFUSCATION_ARRAY_SIZE - 1 ? -1 : OBFUSCATION_ARRAY_SIZE - 1;
 
-        int remainingIndexesLength = (Math.max(beforePwMaxIndex, 0)) + ((pwStartIndex + pwLength) < (alphabetLength - 1) ? (alphabetLength) - (pwStartIndex + pwLength) : 0) - RESERVED_ARRAY_INDEXES;
+        int remainingIndexesLength = (Math.max(beforePwMaxIndex, 0)) + ((pwStartIndex + pwLength) < (OBFUSCATION_ARRAY_SIZE - 1) ? (OBFUSCATION_ARRAY_SIZE) - (pwStartIndex + pwLength) : 0) - RESERVED_ARRAY_INDEXES;
 
         int[] remainingIndexes = new int[remainingIndexesLength];
         if (beforePwMaxIndex > 0) {
@@ -577,13 +593,13 @@ public class Generator {
         return obfuscatedArray;
     }
 
-    int shiftValue(int value, int shiftValue, int alphabetLength) {
-        return (value + shiftValue) % alphabetLength;
+    int shiftValue(int value, int shiftValue) {
+        return (value + shiftValue) % OBFUSCATION_ARRAY_SIZE;
     }
 
-    int unShiftValue(int value, int shiftValue, int alphabetLength) {
-        int tempIndex = (value - shiftValue) % alphabetLength;
-        return tempIndex < 0 ? tempIndex + alphabetLength : tempIndex;
+    int unShiftValue(int value, int shiftValue) {
+        int tempIndex = (value - shiftValue) % OBFUSCATION_ARRAY_SIZE;
+        return tempIndex < 0 ? tempIndex + OBFUSCATION_ARRAY_SIZE : tempIndex;
     }
 
     String base64Encoding(int[] indexes, Encoder e) {
