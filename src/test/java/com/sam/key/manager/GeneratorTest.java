@@ -43,6 +43,89 @@ public class GeneratorTest {
     }
 
     @Test
+    void callToActionTest() {
+        Generator generatorSpy = Mockito.spy(g);
+        try {
+            generatorSpy.callToAction(null, null, 0);
+        } catch (Exception e) {
+        }
+        Mockito.verify(generatorSpy, Mockito.times(1)).callToAction(null, null, 0);
+        Mockito.verify(generatorSpy, Mockito.times(1)).interactiveTokenGenerationHidden(null, null);
+
+        try {
+            generatorSpy.callToAction(null, null, 1);
+        } catch (Exception e) {
+        }
+        Mockito.verify(generatorSpy, Mockito.times(1)).callToAction(null, null, 1);
+        Mockito.verify(generatorSpy, Mockito.times(1)).interactiveTokenGenerationVisible(null, null);
+
+        try {
+            generatorSpy.callToAction(null, null, 2);
+        } catch (Exception e) {
+        }
+        Mockito.verify(generatorSpy, Mockito.times(1)).callToAction(null, null, 2);
+        Mockito.verify(generatorSpy, Mockito.times(1)).interactivePWGenerationHidden(null, null);
+
+        try {
+            generatorSpy.callToAction(null, null, 3);
+        } catch (Exception e) {
+        }
+        Mockito.verify(generatorSpy, Mockito.times(1)).callToAction(null, null, 3);
+        Mockito.verify(generatorSpy, Mockito.times(1)).interactivePWGenerationVisible(null, null);
+
+        try {
+            generatorSpy.callToAction(null, null, 4);
+        } catch (Exception e) {
+        }
+        Mockito.verify(generatorSpy, Mockito.times(1)).callToAction(null, null, 4);
+        Mockito.verify(generatorSpy, Mockito.times(1)).interactivePWRetrieve(true, null, null);
+
+        try {
+            generatorSpy.callToAction(null, null, 5);
+        } catch (Exception e) {
+        }
+        Mockito.verify(generatorSpy, Mockito.times(1)).callToAction(null, null, 5);
+        Mockito.verify(generatorSpy, Mockito.times(1)).interactivePWRetrieve(false, null, null);
+
+        try {
+            generatorSpy.callToAction(null, null, 6);
+        } catch (Exception e) {
+        }
+        Mockito.verify(generatorSpy, Mockito.times(1)).callToAction(null, null, 6);
+    }
+
+    @Test
+    void readOptionExceptionTest() throws IOException {
+        BufferedReader br = provideBufferedReaderMock();
+        assertEquals(g.readOption(br), 1);
+        assertEquals(g.readOption(br), 20);
+        assertEquals(g.readOption(br), 30);
+        assertEquals(g.readOption(br), 10);
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            g.readOption(br);
+        });
+        String expectedMessage = "For input string";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    void mainExceptionTest() {
+        assertThrows(NullPointerException.class, () -> {
+            g.main(new String[]{"test"});
+        });
+    }
+
+    @Test
+    void filterCharactersTest() {
+        int referenceAlphabetLength = g.getReferenceAlphabet().length;
+        String filterChars = "abc!%";
+        int filterCharLength = filterChars.length();
+        Generator generator = new Generator(filterChars);
+        assertTrue(referenceAlphabetLength == generator.getReferenceAlphabet().length + filterCharLength);
+    }
+
+    @Test
     void parseStringToIntArrTest() {
         String indexes = "{21,79,57,0,6,5,39,32,29,69,29,65,72,39,28,44,0,71,10,14,21,53,16,7,3,28}";
         int[] parseStringToIntArr = g.parseStringToIntArr(indexes);
@@ -219,6 +302,17 @@ public class GeneratorTest {
     }
 
     @Test
+    void alphabetSeedRequestNullPinTest() throws IOException {
+        char[] initialAlphabetState = g.referenceAlphabet;
+        assertEquals(initialAlphabetState, g.referenceAlphabet);
+        BufferedReader br = provideBufferedReaderMock();
+        char[] pwd = null;
+        assertThrows(NullPointerException.class, () -> {
+            g.alphabetSeedRequest(br, pwd);
+        });
+    }
+
+    @Test
     void alphabetSeedRequestNullTest() throws IOException {
         char[] initialAlphabetState = g.referenceAlphabet;
         assertEquals(initialAlphabetState, g.referenceAlphabet);
@@ -303,6 +397,15 @@ public class GeneratorTest {
     }
 
     @Test
+    void interactiveGeneratorOnNullTest() throws IOException {
+        Generator generatorSpy = Mockito.spy(g);
+        BufferedReader br = provideBufferedReaderLongMock();
+        String pw = provideMockPassword(); // just for a quick mock token
+        generatorSpy.interactiveGeneratorOnNull(br, 10, 20, 1, true, false, pw);
+        Mockito.verify(generatorSpy, Mockito.times(1)).interactiveGeneratorOnNull(br, 10, 20, 1, true, false, pw);
+    }
+
+    @Test
     void printCharArrayNullTest() {
         Exception exception = assertThrows(Exception.class, () -> g.printCharArrayToString(null));
         String expectedMessage = "Passed Array is null.";
@@ -344,7 +447,7 @@ public class GeneratorTest {
 
     private BufferedReader provideBufferedReaderMock() throws IOException {
         BufferedReader brMock = Mockito.mock(BufferedReader.class);
-        Mockito.when(brMock.readLine()).thenReturn(Integer.toString(PERMUTATION_SEED), Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH), Integer.toString(NO_PWS));
+        Mockito.when(brMock.readLine()).thenReturn(Integer.toString(PERMUTATION_SEED), Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH), Integer.toString(NO_PWS), String.valueOf("Test"));
         return brMock;
     }
 

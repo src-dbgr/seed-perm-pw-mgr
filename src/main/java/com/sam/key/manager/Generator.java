@@ -100,7 +100,7 @@ public class Generator {
         g.printAnsi(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
         g.printCLICommands();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int option = g.readOption(br);
+        int option = g.readOption(args[0] != null && args[0].equals("test") ? null : br);
         ConsoleReader cr = new ConsoleReader();
         g.callToAction(br, cr, option);
     }
@@ -127,9 +127,8 @@ public class Generator {
         int option = -1;
         try {
             option = Integer.parseInt(br.readLine());
-        } catch (Exception e) {
-            log.error(DEFAULT_ERR + " , please choose one of the available options.", e);
-            System.exit(-1);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return option;
     }
@@ -194,16 +193,11 @@ public class Generator {
     }
 
     void alphabetSeedRequest(BufferedReader br, char[] pin) {
-        try {
-            shuffleAlphabetByPin(pin);
-        } catch (Exception e) {
-            if (e instanceof NullPointerException && pin == null && br != null) {
-                log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
-                alphabetSeedRequestOnNull(br);
-            } else {
-                log.error(DEFAULT_ERR, e);
-            }
+        if (pin == null && br != null) {
+            log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
+            alphabetSeedRequestOnNull(br);
         }
+        shuffleAlphabetByPin(pin);
     }
 
     private void shuffleAlphabetByPin(char[] pin) {
@@ -247,7 +241,7 @@ public class Generator {
                 interactivePWRetrieveOnNull(br, hidden, token);
             } else {
                 log.error(DEFAULT_ERR + " on retrieving PW. Make sure your token is correct, has no line breaks or empty space. Check Stack Trace for Details: ", e);
-                System.exit(-1);
+                throw new RuntimeException(e);
             }
         }
     }
