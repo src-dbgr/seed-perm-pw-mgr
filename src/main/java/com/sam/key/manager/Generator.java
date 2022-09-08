@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
@@ -15,6 +16,7 @@ import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.fusesource.jansi.Ansi.Color.YELLOW;
 import static org.fusesource.jansi.Ansi.Color.BLACK;
 import static org.fusesource.jansi.Ansi.Color.GREEN;
@@ -63,9 +65,11 @@ public class Generator {
     public static final String CONTINUE_WITH_DEFAULT_INVOCATION = "Masking input not supported.. Continue with default Invocation";
 
     static final int OBFUSCATION_ARRAY_SIZE = 100;
+    public static final int BYTE = 8;
 
     Decoder decoder = Base64.getDecoder();
     Encoder encoder = Base64.getEncoder();
+    MessageDigest sha3Instance;
 
     char[] alphabet;
 
@@ -248,13 +252,13 @@ public class Generator {
         }
     }
 
-    String providePwFromToken(String pass, long pin, String token, BufferedReader br) {
+    String providePwFromToken(String encryptionPw, long pin, String token, BufferedReader br) {
         String pw = "";
         try {
             char[] pinArr = Long.toString(pin).toCharArray();
-            token = AesGcmPw.decrypt(token, pass);
+            token = AesGcmPw.decrypt(token, encryptionPw);
             alphabetSeedRequest(br, pinArr);
-            int[] indexes = provideClearDecodedIndexes(decoder, token, pin);
+            int[] indexes = provideClearDecodedIndexes(decoder, token, pin, encryptionPw);
             pw = generateByIndexes(indexes, pin);
         } catch (Exception e) {
             e.printStackTrace();
@@ -395,7 +399,7 @@ public class Generator {
         shuffleAlphabetByPin(String.valueOf(pin).toCharArray());
         alphabet = randomizeAlphabet(pin, referenceAlphabet);
         int[] indexes = generateIndexes(length, pin);
-        String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin);
+        String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin, encryptionPw);
         try {
             token = AesGcmPw.encrypt(token.getBytes(AesGcmPw.UTF_8), encryptionPw);
         } catch (Exception e) {
@@ -417,7 +421,7 @@ public class Generator {
         StringBuilder pw = new StringBuilder();
         int[] indexes = generateIndexes(length, pin);
         printAnsi(ansi().fg(GREEN).a("Token:").reset());
-        String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin);
+        String token = provideObfuscatedEncodedIndexes(encoder, indexes, pin, encryptionPw);
         try {
             token = AesGcmPw.encrypt(token.getBytes(AesGcmPw.UTF_8), encryptionPw);
         } catch (Exception e) {
@@ -481,14 +485,19 @@ public class Generator {
         }
     }
 
-    String provideObfuscatedEncodedIndexes(Encoder e, int[] indexes, long pin) {
-        int[] obfuscatedIndexes = obfuscateIndexes(indexes, pin);
+    String provideObfuscatedEncodedIndexes(Encoder e, int[] indexes, long pin, String encryptionPw) {
+        int[] obfuscatedIndexes = obfuscateIndexes(indexes, pin, encryptionPw);
         return base64Encoding(obfuscatedIndexes, e);
+    }
+
+    int[] provideClearDecodedIndexes(Decoder d, String encodedIndexes, long pin, String encryptionPw) {
+        int[] obfuscatedIndexes = base64Decoding(encodedIndexes, d);
+        return clearObfuscatedIndexes(obfuscatedIndexes, pin, encryptionPw);
     }
 
     int[] provideClearDecodedIndexes(Decoder d, String encodedIndexes, long pin) {
         int[] obfuscatedIndexes = base64Decoding(encodedIndexes, d);
-        return clearObfuscatedIndexes(obfuscatedIndexes, pin);
+        return clearObfuscatedIndexes(obfuscatedIndexes, pin, null);
     }
 
     void printHidden(String message) {
@@ -535,12 +544,12 @@ public class Generator {
         return n;
     }
 
-    int[] obfuscateIndexes(int[] indexes, long pin) {
+    int[] obfuscateIndexes(int[] indexes, long pin, String encryptionPw) {
         int pwLength = indexes.length;
         int[] obfuscatedIndexes = new int[OBFUSCATION_ARRAY_SIZE];
         int min = RESERVED_ARRAY_INDEXES;
         int max = OBFUSCATION_ARRAY_SIZE - pwLength;
-        int shiftValue = provideShiftValue(pin);
+        int shiftValue = provideShiftValue(pin + transformPwToHashedLong(encryptionPw));
         boolean obfuscationOffsetTooLong = (OBFUSCATION_ARRAY_SIZE - (pwLength + 1)) <= OBFUSCATION_OFFSET;
         boolean alphabetPWLengthCritical = max <= min;
         if (obfuscationOffsetTooLong || alphabetPWLengthCritical) {
@@ -561,9 +570,9 @@ public class Generator {
         return obfuscatedIndexes;
     }
 
-    int[] clearObfuscatedIndexes(int[] obfuscatedIndexes, long pin) {
+    int[] clearObfuscatedIndexes(int[] obfuscatedIndexes, long pin, String encryptionPw) {
         try {
-            int shiftValue = provideShiftValue(pin);
+            int shiftValue = provideShiftValue(pin + (encryptionPw != null ? transformPwToHashedLong(encryptionPw) : 0));
             int lengthIndex = unShiftValue(obfuscatedIndexes[0], shiftValue);
             int length = unShiftValue(obfuscatedIndexes[lengthIndex], shiftValue);
             int start = unShiftValue(obfuscatedIndexes[1], shiftValue);
@@ -699,4 +708,30 @@ public class Generator {
     private void printAnsi(Ansi msg) {
         System.out.println(msg); //NOSONAR
     }
+
+    long transformPwToHashedLong(String encryptionPw) {
+        return bytesToLong(getSha3Instance().digest(encryptionPw.getBytes(UTF_8)));
+    }
+
+    long bytesToLong(byte[] bytes) {
+        long bytesInLong = 0;
+        for (int i = 0; i < BYTE; i++) {
+            bytesInLong <<= BYTE;
+            bytesInLong |= (bytes[i] & 0xFF);
+        }
+        return bytesInLong;
+    }
+
+    MessageDigest getSha3Instance() {
+        if (sha3Instance == null) {
+            try {
+                sha3Instance = MessageDigest.getInstance("SHA3-512");
+                return sha3Instance;
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return sha3Instance;
+    }
+
 }
