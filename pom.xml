@@ -19,6 +19,8 @@
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-lang.version>3.12.0</commons-lang.version>
         <log4j.version>2.17.2</log4j.version>
+        <sonar.organization>src-dbgr</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <build>
