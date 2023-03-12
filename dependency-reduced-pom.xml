@@ -65,7 +65,10 @@
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.0</version>
+        <version>2.22.2</version>
+        <configuration>
+          <forkCount>0</forkCount>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -79,10 +82,12 @@
     </dependency>
   </dependencies>
   <properties>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jansi.version>2.4.0</jansi.version>
     <log4j.version>2.17.2</log4j.version>
     <mockito.version>4.6.1</mockito.version>
+    <sonar.organization>src-dbgr</sonar.organization>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-lang.version>3.12.0</commons-lang.version>
