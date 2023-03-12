@@ -104,7 +104,7 @@ public class GeneratorTest {
         Exception exception = assertThrows(RuntimeException.class, () -> {
             g.readOption(br);
         });
-        String expectedMessage = "For input string";
+        String expectedMessage = "Input is not a valid integer:";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }

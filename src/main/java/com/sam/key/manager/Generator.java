@@ -62,10 +62,15 @@ public class Generator {
     public static final String ENTER_PIN = "Enter Pin:";
     private static final int SHUFFLE_THRESHOLD = 5;
     private static final String DEFAULT_ERR = "Issue occurred";
-    public static final String CONTINUE_WITH_DEFAULT_INVOCATION = "Masking input not supported.. Continue with default Invocation";
+    private static final String CONTINUE_WITH_DEFAULT_INVOCATION = "Masking input not supported.. Continue with default Invocation";
 
     static final int OBFUSCATION_ARRAY_SIZE = 100;
-    public static final int BYTE = 8;
+    private static final int BYTE = 8;
+    private static final String TEST = "test";
+    private static final String LOG_4_J_CONFIGURATION_FILENAME = "log4j.configurationFile";
+    private static final String LOG_4_J_PROPERTIES_PATH = "./src/main/resources/log4j2.properties";
+    private static final String CREATE_PASSWORDS = " - Create Passwords - ";
+    private static final String RETRIEVE_PASSWORD = " - Retrieve Password ";
 
     Decoder decoder = Base64.getDecoder();
     Encoder encoder = Base64.getEncoder();
@@ -95,12 +100,12 @@ public class Generator {
         Generator g = new Generator();
         AnsiConsole.systemInstall();
         g.printAnsi(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
-        System.setProperty("log4j.configurationFile", "./src/main/resources/log4j2.properties");
+        System.setProperty(LOG_4_J_CONFIGURATION_FILENAME, LOG_4_J_PROPERTIES_PATH);
         log = LoggerFactory.getLogger(Generator.class);
         g.printAnsi(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
         g.printCLICommands();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int option = g.readOption(args[0] != null && args[0].equals("test") ? null : br);
+        int option = g.readOption(args[0] != null && args[0].equals(TEST) ? null : br);
         ConsoleReader cr = new ConsoleReader();
         g.callToAction(br, cr, option);
     }
@@ -123,14 +128,18 @@ public class Generator {
         return this.referenceAlphabet;
     }
 
-    int readOption(BufferedReader br) {
-        int option = -1;
-        try {
-            option = Integer.parseInt(br.readLine());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    int readOption(BufferedReader br){
+        try{
+            String input = br.readLine();
+            input = input.trim();
+            if (!input.matches("\\d+")) {
+                throw new IllegalArgumentException("Input is not a valid integer: " + input);
+            }
+            return Integer.parseInt(input);
+        } catch (IOException e){
+            log.error("Could not process input", e);
         }
-        return option;
+        return -1;
     }
 
     void callToAction(BufferedReader br, ConsoleReader cr, int option) {
@@ -175,12 +184,12 @@ public class Generator {
 
     void printCLICommands() {
         printAnsi(ansi().fg(GREEN).a("Choose what you want to do:").reset());
-        printAnsi(ansi().fg(GREEN).a("0").fg(YELLOW).a(" - Create Passwords - Show only Token (Hidden)").reset());
-        printAnsi(ansi().fg(GREEN).a("1").fg(YELLOW).a(" - Create Passwords - Show only Token (Visible)").reset());
-        printAnsi(ansi().fg(GREEN).a("2").fg(YELLOW).a(" - Create Passwords - Show PWs and Token (Hidden)").reset());
-        printAnsi(ansi().fg(GREEN).a("3").fg(YELLOW).a(" - Create Passwords - Show PWs and Token (Visible)").reset());
-        printAnsi(ansi().fg(GREEN).a("4").fg(YELLOW).a(" - Retrieve Password (Hidden)").reset());
-        printAnsi(ansi().fg(GREEN).a("5").fg(YELLOW).a(" - Retrieve Password (Visible)").reset());
+        printAnsi(ansi().fg(GREEN).a("0").fg(YELLOW).a(CREATE_PASSWORDS + "Show only Token (Hidden)").reset());
+        printAnsi(ansi().fg(GREEN).a("1").fg(YELLOW).a(CREATE_PASSWORDS + "Show only Token (Visible)").reset());
+        printAnsi(ansi().fg(GREEN).a("2").fg(YELLOW).a(CREATE_PASSWORDS + "Show PWs and Token (Hidden)").reset());
+        printAnsi(ansi().fg(GREEN).a("3").fg(YELLOW).a(CREATE_PASSWORDS + "Show PWs and Token (Visible)").reset());
+        printAnsi(ansi().fg(GREEN).a("4").fg(YELLOW).a(RETRIEVE_PASSWORD + "(Hidden)").reset());
+        printAnsi(ansi().fg(GREEN).a("5").fg(YELLOW).a(RETRIEVE_PASSWORD + "(Visible)").reset());
     }
 
     public long convertCharToLong(char[] pwd) {
@@ -609,10 +618,9 @@ public class Generator {
             throw new IllegalStateException("Pw Length not yet assigned to obfuscated Array");
         }
         for (int remainingIndex : remainingIndexes) {
-            if (remainingIndex == pwLengthIndex) {
-                continue;
+            if (remainingIndex != pwLengthIndex) {
+                obfuscatedArray[remainingIndex] = provideSecureRandomInteger(0, alphabetLength);
             }
-            obfuscatedArray[remainingIndex] = provideSecureRandomInteger(0, alphabetLength);
         }
         return obfuscatedArray;
     }
