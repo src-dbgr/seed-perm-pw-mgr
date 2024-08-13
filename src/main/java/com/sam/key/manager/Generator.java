@@ -81,13 +81,22 @@ public class Generator {
     char[] initialAlphabet = {'i', 'g', 'r', '.', 'u', '$', '&', 'G', '+', 'W', '9', 'C', 'Q', ':', 'w', 'o', 'j', 'L', 'y', 'A', 'O', 'v', 'U', 'Y', 'S', 'z', 'E', 'f', '*', '2', '=', '4', '%', 'B', 'K', 'T', 'm', '@', '!', 'h', 'V', '/', '1', 'l', 'X', '(', '_', 'J', ')', '5', 'a', 'q', 'k', '[', '?', '=', '-', 'n', 'P', 's', '3', 'Z', 'N', 'M', '#', 'R', 'p', ']', '0', '7', 'D', 'x', '8', 't', '6', 'e', 'H', ';', 'I', 'F', 'd', 'b', 'c'};
     char[] referenceAlphabet = initialAlphabet;
 
-    static String pwMgr = "\n" + "                                                                                        \n" + " _____ _____ _____ ____     _____ _____ _____ _____    _____ _ _ _    _____ _____ _____ \n" + "|   __|   __|   __|    \\   |  _  |   __| __  |     |  |  _  | | | |  |     |   __| __  |\n" + "|__   |   __|   __|  |  |  |   __|   __|    -| | | |  |   __| | | |  | | | |  |  |    -|\n" + "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n" + "                                                                                        \n" + "";
+    static String pwMgr = "\n" +
+            "                                                                                        \n" +
+            " _____ _____ _____ ____     _____ _____ _____ _____    _____ _ _ _    _____ _____ _____ \n" +
+            "|   __|   __|   __|    \\   |  _  |   __| __  |     |  |  _  | | | |  |     |   __| __  |\n" +
+            "|__   |   __|   __|  |  |  |   __|   __|    -| | | |  |   __| | | |  | | | |  |  |    -|\n" +
+            "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n" +
+            "                                                                                        \n";
 
     static Logger log;
     private boolean randomized = false;
 
     public Generator(String filteredCharacters) {
-        List<Character> characters = new String(referenceAlphabet).chars().mapToObj(c -> (char) c).collect(Collectors.toList());
+        List<Character> characters = new String(referenceAlphabet)
+                .chars()
+                .mapToObj(c -> Character.valueOf((char) c))
+                .collect(Collectors.toList());
         List<String> removeChars = Arrays.asList(filteredCharacters.split(""));
         List<Character> filteredChars = characters.stream().filter(c -> !removeChars.contains(c.toString())).collect(Collectors.toList());
         setReferenceAlphabet(toCharArray(filteredChars));
@@ -360,7 +369,7 @@ public class Generator {
         char[] arr = alphabet;
         List<Character> tempList = new ArrayList<>();
         for (char c : arr) {
-            tempList.add(c);
+            tempList.add(Character.valueOf(c));
         }
         shuffle(tempList, new MersenneTwister(seed));
         String str = tempList.toString().replace(",", "");
@@ -581,16 +590,6 @@ public class Generator {
             int start = unShiftValue(obfuscatedIndexes[1], shiftValue);
             int[] clearIndexes = new int[length];
             for (int i = 0; i < clearIndexes.length; i++) {
-                // log.trace("\n====================================================================" + 
-                // "\nshiftValue:               " + shiftValue +
-                // "\nlengthIndex:              " + lengthIndex +
-                // "\nlength:                   " + length +
-                // "\nstart:                    " + start +
-                // "\ni:                        " + i + 
-                // "\ni + start:                " + (i + start) +
-                // "\nclearIndexes.lenght:      " + clearIndexes.length + 
-                // "\nobfuscatedIndexes.length: " + obfuscatedIndexes.length +
-                // "\nshiftValue:               " + shiftValue);
                 clearIndexes[i] = unShiftValue(obfuscatedIndexes[(i + start)], shiftValue);
             }
             return clearIndexes;

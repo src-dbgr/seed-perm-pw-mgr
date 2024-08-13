@@ -101,9 +101,7 @@ public class GeneratorTest {
         assertEquals(g.readOption(br), 20);
         assertEquals(g.readOption(br), 30);
         assertEquals(g.readOption(br), 10);
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            g.readOption(br);
-        });
+        Exception exception = assertThrows(RuntimeException.class, () -> g.readOption(br));
         String expectedMessage = "Input is not a valid integer:";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
@@ -111,9 +109,7 @@ public class GeneratorTest {
 
     @Test
     void mainExceptionTest() {
-        assertThrows(NullPointerException.class, () -> {
-            g.main(new String[]{"test"});
-        });
+        assertThrows(NullPointerException.class, () -> Generator.main(new String[]{"test"}));
     }
 
     @Test
@@ -122,7 +118,7 @@ public class GeneratorTest {
         String filterChars = "abc!%";
         int filterCharLength = filterChars.length();
         Generator generator = new Generator(filterChars);
-        assertTrue(referenceAlphabetLength == generator.getReferenceAlphabet().length + filterCharLength);
+        assertEquals(referenceAlphabetLength, generator.getReferenceAlphabet().length + filterCharLength);
     }
 
     @Test
@@ -307,9 +303,7 @@ public class GeneratorTest {
         assertEquals(initialAlphabetState, g.referenceAlphabet);
         BufferedReader br = provideBufferedReaderMock();
         char[] pwd = null;
-        assertThrows(NullPointerException.class, () -> {
-            g.alphabetSeedRequest(br, pwd);
-        });
+        assertThrows(NullPointerException.class, () -> g.alphabetSeedRequest(br, pwd));
     }
 
     @Test
