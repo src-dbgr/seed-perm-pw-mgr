@@ -105,7 +105,7 @@ public class Generator {
         g.printAnsi(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
         g.printCLICommands();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int option = g.readOption(args[0] != null && args[0].equals(TEST) ? null : br);
+        int option = g.readOption(args.length > 0 && args[0] != null && args[0].equals(TEST) ? null : br);
         ConsoleReader cr = new ConsoleReader();
         g.callToAction(br, cr, option);
     }
@@ -581,7 +581,17 @@ public class Generator {
             int start = unShiftValue(obfuscatedIndexes[1], shiftValue);
             int[] clearIndexes = new int[length];
             for (int i = 0; i < clearIndexes.length; i++) {
-                clearIndexes[i] = unShiftValue(obfuscatedIndexes[i + start], shiftValue);
+                // log.trace("\n====================================================================" + 
+                // "\nshiftValue:               " + shiftValue +
+                // "\nlengthIndex:              " + lengthIndex +
+                // "\nlength:                   " + length +
+                // "\nstart:                    " + start +
+                // "\ni:                        " + i + 
+                // "\ni + start:                " + (i + start) +
+                // "\nclearIndexes.lenght:      " + clearIndexes.length + 
+                // "\nobfuscatedIndexes.length: " + obfuscatedIndexes.length +
+                // "\nshiftValue:               " + shiftValue);
+                clearIndexes[i] = unShiftValue(obfuscatedIndexes[(i + start)], shiftValue);
             }
             return clearIndexes;
         } catch (Exception e) {

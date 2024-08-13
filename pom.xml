@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.sam.key</groupId>
@@ -18,7 +18,7 @@
         <jansi.version>2.4.0</jansi.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-lang.version>3.12.0</commons-lang.version>
-        <log4j.version>2.17.2</log4j.version>
+        <log4j.version>2.23.1</log4j.version>
         <sonar.organization>src-dbgr</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
@@ -55,7 +55,7 @@
                             </filters>
                             <transformers>
                                 <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.sam.key.manager.Generator</mainClass>
                                 </transformer>
                             </transformers>
@@ -145,6 +145,11 @@
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>${log4j.version}</version>
             <!--            <scope>provided</scope>-->
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.36</version>
         </dependency>
     </dependencies>
 

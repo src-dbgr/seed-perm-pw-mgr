@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class GeneratorTest {
 
-    static final int PERMUTATION_SEED = 1;
+    static final int PERMUTATION_SEED = 1; // this is also the password
     static final int PIN = 12345;
     static final int NO_PWS = 10;
     static final int MIN_PW_LENGTH = 20;
@@ -389,7 +389,7 @@ public class GeneratorTest {
 
         char[] initialAlphabetState = g.referenceAlphabet;
         assertEquals(initialAlphabetState, g.referenceAlphabet);
-        BufferedReader br = provideBufferedReaderNullTokenMock();
+        BufferedReader br = provideBufferedReaderInvalidTokenMock();
         ConsoleReader cr = provideConsoleReaderNullMock();
         g.interactivePWRetrieve(false, cr, br);
         assertNotEquals(initialAlphabetState, g.referenceAlphabet);
@@ -453,12 +453,19 @@ public class GeneratorTest {
 
     private BufferedReader provideBufferedReaderTokenMock() throws IOException {
         BufferedReader brMock = Mockito.mock(BufferedReader.class);
-        String mockToken = "SkZlAQLxqELWuJxMrojtHYagiomXsKsKMVZRtYscjtCdaRWt0zvZPZa8yIN3KEZhQblVdyHzJYHhlr9hRtAYMSpBG48n6v809dLdTq75Vxo3sWQqqIHUIllkdbyK6z5t6VSUM6LtBV1E3Wa2BAcMjHJnfTHPKoTskP6msxeWZvy2ZUKwV2zJEIfGvDPm32UQDZW6fqeW7miZQdwzVsosNVvMq0AsKhHAe1EQ8ti+thqK4MC1rr4ppJoIGVudcfAl4vsXD/X4rmvypQdw+nXYqi2MnsGN+CL79vo5qzFgbDX72r9tHolGlWRgr6l3KcdAn8ivkQDRN1NQsOSvQmQDvYaaUWoegNMpE95GMZ691alMJhmC1AQb6P8zbYyn0b/LNMgMzslakyl/nJNimzvuofvgkc3jEWQTnQnBNLdtU5Ctzxt1k89qSryloi6T00gxerULdDO37sh8dcDoQgN5ITFD2cDLuzd6zyw4yGWcuzphX/drrxa95y2QIAzibJTIKMiBo77a9FvYXfuFzvXmMdluDYmJAEi6f9W3uYmtRmOFEUVEcqOg+3JilmDSoDFnW1RCoaUcYTLFMM2U2PPuifRCx2462UN9W9g11jnOPNrCJSVdRdQ1QD6kehJOMCm4IPx7wE0Yxl3/Niy4G/UcEwiv1SaJOMYckeHNaUfjOA33YijxXqO4Kw0rbi0p9HdOCu6a21EJ7fShWHlnFIo6NKI7CRyFm+XToOBZ9XyU9kMVW9e8q/Rft49dIJUu2yxsA1LnaFQolp0Pav+vttJjCRzlKXeUn0aCh97HC+Y0/oFcUKc/F9uqws7RijGK5XDOSJqKvzgbZGXKygzCwQGbKFTbjnc=";
+        // The tocken encrypts the PW:
+        // )sc8l[vD$jGIRZUY5(;[
+        // Commands:
+        // Enter PW: 1
+        // min PW Char Length: 20
+        // max PW Char Length: 30
+        // Pin: 12345
+        String mockToken = "qBGMZI4xpnq7SOD+mAemA2/4syKwN8g7yiWgWk5zJRQEzaP5zKuVqHB2mCCo5diEsHzG0Z6IMYOOVQV4Gm86q0Luo/bPqD9vy1bG6g67ltWls6kJijC87RyXl7WJsZp7MCNv53UZRkOINBAAPNxNdYDvB2rAqIL61FDooLLMNiNZPGbydGmlE8xvFfa+XbisT9O/NDLLYt3sO06PNsqNwuLApcSOjQYOwYyt2sSHoLcm9q5Rodfsah0Fp7Jm5CAIUAUyS7ifE6NT6Sbpz2qFjFuUmA3ZHiu1Hb2ykiofvYsplgWgirJ6MnSwlB846/DFOS5rHgXpE971hOWwMiBm6Ay4wRjEE9tJNhOLkAlfTvLBCDmCOiShUbMbowIPVw9SSZGBEl4cJh0OyHhhTzBHPBGozEhElVDT/4pLDciPaEhu0Y2ms2zADbQz17bSwu0v+0JZjwFP3mTtfITonAgpj+aW0lgRC4AdBgndky0EFuI+JfwuM5bw4Uhzb7K3d2bT7/YZztd40z5kwQVMNrAUHyXkCG+/tkIrY+U543oH5GJ01W/N6BHqHZ+GJLJJVvjzK2cdaMZLaxlZVPyJ1Bklq3twg94RQAPZBzooJdN/tUdDaNsurAX+55eLYixwS2jsanufVc1PR6RYTsJHX9JKWOWvDZz1HnvEnvNklO0lXd6NeXh2S36ZuxaK8LJFLMk+0qK7oj2GajbVfvlVJm2XwWkasnu7/+Y1RjPeNjPsrsIXpEIJFCPZNIETzjDvG8GNIiKa3s9+zcbIc9Z1m/pcmVOpvEdI7JL3IBO+LnoNQjWKVTDNswj/gqeM6nuNOK/pD8TNIZHZCQhI9R1C9OztbSrjE4xooZ7u";
         Mockito.when(brMock.readLine()).thenReturn(mockToken, Integer.toString(PERMUTATION_SEED), Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH), Integer.toString(NO_PWS));
         return brMock;
     }
 
-    private BufferedReader provideBufferedReaderNullTokenMock() throws IOException {
+    private BufferedReader provideBufferedReaderInvalidTokenMock() throws IOException {
         BufferedReader brMock = Mockito.mock(BufferedReader.class);
         String mockToken = "SkZlAQLxqELWuJxMrojtHYagiomXsKsKMVZRtYscjtCdaRWt0zvZPZa8yIN3KEZhQblVdyHzJYHhlr9hRtAYMSpBG48n6v809dLdTq75Vxo3sWQqqIHUIllkdbyK6z5t6VSUM6LtBV1E3Wa2BAcMjHJnfTHPKoTskP6msxeWZvy2ZUKwV2zJEIfGvDPm32UQDZW6fqeW7miZQdwzVsosNVvMq0AsKhHAe1EQ8ti+thqK4MC1rr4ppJoIGVudcfAl4vsXD/X4rmvypQdw+nXYqi2MnsGN+CL79vo5qzFgbDX72r9tHolGlWRgr6l3KcdAn8ivkQDRN1NQsOSvQmQDvYaaUWoegNMpE95GMZ691alMJhmC1AQb6P8zbYyn0b/LNMgMzslakyl/nJNimzvuofvgkc3jEWQTnQnBNLdtU5Ctzxt1k89qSryloi6T00gxerULdDO37sh8dcDoQgN5ITFD2cDLuzd6zyw4yGWcuzphX/drrxa95y2QIAzibJTIKMiBo77a9FvYXfuFzvXmMdluDYmJAEi6f9W3uYmtRmOFEUVEcqOg+3JilmDSoDFnW1RCoaUcYTLFMM2U2PPuifRCx2462UN9W9g11jnOPNrCJSVdRdQ1QD6kehJOMCm4IPx7wE0Yxl3/Niy4G/UcEwiv1SaJOMYckeHNaUfjOA33YijxXqO4Kw0rbi0p9HdOCu6a21EJ7fShWHlnFIo6NKI7CRyFm+XToOBZ9XyU9kMVW9e8q/Rft49dIJUu2yxsA1LnaFQolp0Pav+vttJjCRzlKXeUn0aCh97HC+Y0/oFcUKc/F9uqws7RijGK5XDOSJqKvzgbZGXKygzCwQGbKFTbjnc=";
         Mockito.when(brMock.readLine()).thenReturn(mockToken, Integer.toString(PERMUTATION_SEED), Integer.toString(PERMUTATION_SEED), Integer.toString(MIN_PW_LENGTH), Integer.toString(MAX_PW_LENGTH), Integer.toString(NO_PWS));
