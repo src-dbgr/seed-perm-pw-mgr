@@ -105,11 +105,11 @@ public class GeneratorTest {
 
     @Test
     void filterCharactersTest() {
-        int referenceAlphabetLength = g.getReferenceAlphabet().length;
+        int referenceAlphabetLength = g.referenceAlphabet.length;
         String filterChars = "abc!%";
         int filterCharLength = filterChars.length();
         Generator generator = new Generator(filterChars);
-        assertEquals(referenceAlphabetLength, generator.getReferenceAlphabet().length + filterCharLength);
+        assertEquals(referenceAlphabetLength, generator.referenceAlphabet.length + filterCharLength);
     }
 
     @Test
@@ -128,6 +128,10 @@ public class GeneratorTest {
         assertEquals(5, parseStringToIntArr.length);
         assertEquals(2, parseStringToIntArr[3]);
         assertEquals(6, parseStringToIntArr[4]);
+
+        indexes = "{21,79,57, 0,6}";
+        int[] result = g.parseStringToIntArr(indexes);
+        assertArrayEquals(new int[]{21, 79, 57, 0, 6}, result);
     }
 
     @Test
@@ -135,7 +139,7 @@ public class GeneratorTest {
         String indexes = "{21,79,57, abc,0,6}";
         Exception exception = assertThrows(NumberFormatException.class, () -> g.parseStringToIntArr(indexes));
 
-        String expectedMessage = "For input string: \"abc\"";
+        String expectedMessage = "For input string: \"\"";
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -224,7 +228,7 @@ public class GeneratorTest {
 
     @Test
     void padWithEmptyStringTest() {
-        String emptyString = g.padWithEmtpyString();
+        String emptyString = g.padWithEmptyString();
         assertTrue(emptyString.length() >= Generator.MIN_PADDING_LENGTH);
         assertTrue(emptyString.length() <= Generator.MAX_PADDING_LENGTH);
     }
@@ -233,7 +237,7 @@ public class GeneratorTest {
     void generateByIndexesTest() {
         int[] indexes = {47, 41, 12, 1, 28, 57, 7, 44, 67, 43, 46, 73, 67, 51, 82, 10, 43, 53, 42, 53, 20, 73, 65, 48, 35, 65, 9, 14, 61, 38, 43, 57, 56, 30, 80, 76, 22, 56, 18, 11, 35, 16, 14, 9, 37, 16, 49, 51, 43, 30, 80, 77, 61, 40, 79, 30, 6, 37, 22, 10, 30, 3, 41, 21, 15, 69, 57, 51, 32, 45, 36, 75, 54, 68, 45, 53, 9, 59, 56, 16, 47, 3};
         String expectedPw = "S=KGe1:aC$_fC[yV$rMrYfR&gR*lmd$1xEB@(xL0g-l*P-5[$EBumJ.EWP(VEo=ZHI1[QAwNp;Ar*Tx-So";
-        char[] referenceAlphabetInitial = g.getReferenceAlphabet();
+        char[] referenceAlphabetInitial = g.referenceAlphabet;
         String generatePwByIndexes = g.setReferenceAlphabet(UTILIZED_REFERENCE_ALPHABET).generateByIndexes(indexes, PIN);
         assertEquals(expectedPw, generatePwByIndexes);
 
