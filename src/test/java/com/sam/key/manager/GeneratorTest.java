@@ -3,11 +3,9 @@ package com.sam.key.manager;
 import com.sam.key.manager.Generator.ConsoleReader;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.math3.random.MersenneTwister;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,20 +20,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class GeneratorTest {
 
+    public static final char[] UTILIZED_REFERENCE_ALPHABET = {'i', 'g', 'r', '.', 'u', '$', '&', 'G', '+', 'W', '9', 'C', 'Q', ':', 'w', 'o', 'j', 'L', 'y', 'A', 'O', 'v', 'U', 'Y', 'S', 'z', 'E', 'f', '*', '2', '=', '4', '%', 'B', 'K', 'T', 'm', '@', '!', 'h', 'V', '/', '1', 'l', 'X', '(', '_', 'J', ')', '5', 'a', 'q', 'k', '[', '?', '=', '-', 'n', 'P', 's', '3', 'Z', 'N', 'M', '#', 'R', 'p', ']', '0', '7', 'D', 'x', '8', 't', '6', 'e', 'H', ';', 'I', 'F', 'd', 'b', 'c'};
     static final int PERMUTATION_SEED = 1; // this is also the password
     static final int PIN = 12345;
     static final int NO_PWS = 10;
     static final int MIN_PW_LENGTH = 20;
     static final int MAX_PW_LENGTH = 30;
-    public static final char[] UTILIZED_REFERENCE_ALPHABET = {'i', 'g', 'r', '.', 'u', '$', '&', 'G', '+', 'W', '9', 'C', 'Q', ':', 'w', 'o', 'j', 'L', 'y', 'A', 'O', 'v', 'U', 'Y', 'S', 'z', 'E', 'f', '*', '2', '=', '4', '%', 'B', 'K', 'T', 'm', '@', '!', 'h', 'V', '/', '1', 'l', 'X', '(', '_', 'J', ')', '5', 'a', 'q', 'k', '[', '?', '=', '-', 'n', 'P', 's', '3', 'Z', 'N', 'M', '#', 'R', 'p', ']', '0', '7', 'D', 'x', '8', 't', '6', 'e', 'H', ';', 'I', 'F', 'd', 'b', 'c'};
-
     Generator g;
-
-    @BeforeAll
-    public static void init() {
-        System.setProperty("log4j.configurationFile", "./src/main/resources/log4j2.properties");
-        Generator.log = LoggerFactory.getLogger(GeneratorTest.class);
-    }
 
     @BeforeEach
     public void reassign() {

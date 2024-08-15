@@ -2,8 +2,8 @@ package com.sam.key.manager;
 
 import com.sam.key.cipher.AesGcmPw;
 import org.apache.commons.math3.random.MersenneTwister;
-import org.fusesource.jansi.AnsiConsole;
 import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,16 +14,10 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.fusesource.jansi.Ansi.Color.YELLOW;
-import static org.fusesource.jansi.Ansi.Color.BLACK;
-import static org.fusesource.jansi.Ansi.Color.GREEN;
-import static org.fusesource.jansi.Ansi.Color.MAGENTA;
-import static org.fusesource.jansi.Ansi.Color.WHITE;
-import static org.fusesource.jansi.Ansi.Color.RED;
+import static org.fusesource.jansi.Ansi.Color.*;
 import static org.fusesource.jansi.Ansi.ansi;
 
 /**
@@ -61,27 +55,15 @@ public class Generator {
     public static final int MAX_PADDING_LENGTH = 20;
     public static final int RESERVED_ARRAY_INDEXES = 2;
     public static final String ENTER_PIN = "Enter Pin:";
+    static final int OBFUSCATION_ARRAY_SIZE = 100;
     private static final int SHUFFLE_THRESHOLD = 5;
     private static final String DEFAULT_ERR = "Issue occurred";
     private static final String CONTINUE_WITH_DEFAULT_INVOCATION = "Masking input not supported.. Continue with default Invocation";
-
-    static final int OBFUSCATION_ARRAY_SIZE = 100;
     private static final int BYTE = 8;
     private static final String TEST = "test";
-    private static final String LOG_4_J_CONFIGURATION_FILENAME = "log4j.configurationFile";
-    private static final String LOG_4_J_PROPERTIES_PATH = "./src/main/resources/log4j2.properties";
     private static final String CREATE_PASSWORDS = " - Create Passwords - ";
     private static final String RETRIEVE_PASSWORD = " - Retrieve Password ";
-
-    Decoder decoder = Base64.getDecoder();
-    Encoder encoder = Base64.getEncoder();
-    MessageDigest sha3Instance;
-
-    char[] alphabet;
-
-    char[] initialAlphabet = {'i', 'g', 'r', '.', 'u', '$', '&', 'G', '+', 'W', '9', 'C', 'Q', ':', 'w', 'o', 'j', 'L', 'y', 'A', 'O', 'v', 'U', 'Y', 'S', 'z', 'E', 'f', '*', '2', '=', '4', '%', 'B', 'K', 'T', 'm', '@', '!', 'h', 'V', '/', '1', 'l', 'X', '(', '_', 'J', ')', '5', 'a', 'q', 'k', '[', '?', '=', '-', 'n', 'P', 's', '3', 'Z', 'N', 'M', '#', 'R', 'p', ']', '0', '7', 'D', 'x', '8', 't', '6', 'e', 'H', ';', 'I', 'F', 'd', 'b', 'c'};
-    char[] referenceAlphabet = initialAlphabet;
-
+    private static final Logger log = LoggerFactory.getLogger(Generator.class);
     static String pwMgr = "\n" +
             "                                                                                        \n" +
             " _____ _____ _____ ____     _____ _____ _____ _____    _____ _ _ _    _____ _____ _____ \n" +
@@ -89,18 +71,13 @@ public class Generator {
             "|__   |   __|   __|  |  |  |   __|   __|    -| | | |  |   __| | | |  | | | |  |  |    -|\n" +
             "|_____|_____|_____|____/   |__|  |_____|__|__|_|_|_|  |__|  |_____|  |_|_|_|_____|__|__|\n" +
             "                                                                                        \n";
-
+    Decoder decoder = Base64.getDecoder();
+    Encoder encoder = Base64.getEncoder();
+    MessageDigest sha3Instance;
+    char[] alphabet;
+    char[] initialAlphabet = {'i', 'g', 'r', '.', 'u', '$', '&', 'G', '+', 'W', '9', 'C', 'Q', ':', 'w', 'o', 'j', 'L', 'y', 'A', 'O', 'v', 'U', 'Y', 'S', 'z', 'E', 'f', '*', '2', '=', '4', '%', 'B', 'K', 'T', 'm', '@', '!', 'h', 'V', '/', '1', 'l', 'X', '(', '_', 'J', ')', '5', 'a', 'q', 'k', '[', '?', '=', '-', 'n', 'P', 's', '3', 'Z', 'N', 'M', '#', 'R', 'p', ']', '0', '7', 'D', 'x', '8', 't', '6', 'e', 'H', ';', 'I', 'F', 'd', 'b', 'c'};
+    char[] referenceAlphabet = initialAlphabet;
     private boolean randomized = false;
-    static volatile Logger log;
-    private static final CountDownLatch loggerInitLatch = new CountDownLatch(1);
-
-    static {
-        new Thread(() -> {
-            System.setProperty(LOG_4_J_CONFIGURATION_FILENAME, LOG_4_J_PROPERTIES_PATH);
-            log = LoggerFactory.getLogger(Generator.class);
-            loggerInitLatch.countDown();
-        }).start();
-    }
 
     public Generator(String filteredCharacters) {
         List<Character> characters = new String(referenceAlphabet)
@@ -119,23 +96,12 @@ public class Generator {
         Generator g = new Generator();
         AnsiConsole.systemInstall();
         g.printAnsi(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
-        System.setProperty(LOG_4_J_CONFIGURATION_FILENAME, LOG_4_J_PROPERTIES_PATH);
         g.printAnsi(ansi().eraseScreen().bg(GREEN).fg(WHITE).a(pwMgr).reset());
         g.printCLICommands();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int option = g.readOption(args.length > 0 && args[0] != null && args[0].equals(TEST) ? null : br);
         ConsoleReader cr = new ConsoleReader();
         g.callToAction(br, cr, option);
-    }
-
-    private static Logger getLogger() {
-        try {
-            loggerInitLatch.await(); // Warte, bis der Logger initialisiert ist
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.err.println("Logger initialization interrupted");
-        }
-        return log;
     }
 
     char[] toCharArray(List<Character> list) {
@@ -146,25 +112,24 @@ public class Generator {
         return returnChar;
     }
 
+    public char[] getReferenceAlphabet() {
+        return this.referenceAlphabet;
+    }
 
     public Generator setReferenceAlphabet(char[] referenceAlphabet) {
         this.referenceAlphabet = referenceAlphabet;
         return this;
     }
 
-    public char[] getReferenceAlphabet() {
-        return this.referenceAlphabet;
-    }
-
-    int readOption(BufferedReader br){
-        try{
+    int readOption(BufferedReader br) {
+        try {
             String input = br.readLine();
             input = input.trim();
             if (!input.matches("\\d+")) {
                 throw new IllegalArgumentException("Input is not a valid integer: " + input);
             }
             return Integer.parseInt(input);
-        } catch (IOException e){
+        } catch (IOException e) {
             log.error("Could not process input", e);
         }
         return -1;
@@ -205,7 +170,7 @@ public class Generator {
                 throw new IllegalArgumentException("PW is null");
             }
         } catch (IOError e) {
-            getLogger().error(DEFAULT_ERR, e);
+            log.error(DEFAULT_ERR, e);
         }
         return pw;
     }
@@ -231,7 +196,7 @@ public class Generator {
 
     void alphabetSeedRequest(BufferedReader br, char[] pin) {
         if (pin == null && br != null) {
-            getLogger().info(CONTINUE_WITH_DEFAULT_INVOCATION);
+            log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
             alphabetSeedRequestOnNull(br);
         }
         shuffleAlphabetByPin(pin);
@@ -252,7 +217,7 @@ public class Generator {
             long seed = Long.parseLong(seedS);
             referenceAlphabet = randomizeAlphabet(seed, referenceAlphabet);
         } catch (IOException e) {
-            getLogger().error(DEFAULT_ERR, e);
+            log.error(DEFAULT_ERR, e);
         }
     }
 
@@ -274,10 +239,10 @@ public class Generator {
             }
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
-                getLogger().info(CONTINUE_WITH_DEFAULT_INVOCATION);
+                log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
                 interactivePWRetrieveOnNull(br, hidden, token);
             } else {
-                getLogger().error(DEFAULT_ERR + " on retrieving PW. Make sure your token is correct, has no line breaks or empty space. Check Stack Trace for Details: ", e);
+                log.error(DEFAULT_ERR + " on retrieving PW. Make sure your token is correct, has no line breaks or empty space. Check Stack Trace for Details: ", e);
                 throw new RuntimeException(e);
             }
         }
@@ -313,7 +278,7 @@ public class Generator {
                 printNormal(generateByIndexes(indexes, seed));
             }
         } catch (IOException e) {
-            getLogger().error(DEFAULT_ERR, e);
+            log.error(DEFAULT_ERR, e);
         }
     }
 
@@ -354,10 +319,10 @@ public class Generator {
             printMultipleRandomPWs(min, max, numPws, pin, anonymous, hidden, encryptionPw);
         } catch (Exception e) {
             if (e instanceof NullPointerException && readPin == null) {
-                getLogger().info(CONTINUE_WITH_DEFAULT_INVOCATION);
+                log.info(CONTINUE_WITH_DEFAULT_INVOCATION);
                 interactiveGeneratorOnNull(br, min, max, numPws, anonymous, hidden, encryptionPw);
             } else {
-                getLogger().error("Error occurred on interactive PW generation, check Stack Trace for Details: ", e);
+                log.error("Error occurred on interactive PW generation, check Stack Trace for Details: ", e);
                 System.exit(-1);
             }
         }
@@ -370,7 +335,7 @@ public class Generator {
             long seed = Long.parseLong(pin);
             printMultipleRandomPWs(min, max, numPws, seed, anonymous, hidden, encryptionPw);
         } catch (IOException e) {
-            getLogger().error(DEFAULT_ERR, e);
+            log.error(DEFAULT_ERR, e);
         }
     }
 
@@ -406,7 +371,7 @@ public class Generator {
         try {
             rand = SecureRandom.getInstanceStrong().nextInt(max - min) + min;
         } catch (NoSuchAlgorithmException e) {
-            getLogger().error(DEFAULT_ERR + " generating random numbers: ", e);
+            log.error(DEFAULT_ERR + " generating random numbers: ", e);
         }
         if (rand == -1) {
             throw new IllegalStateException(DEFAULT_ERR + " generating random numbers, random value is -1");
@@ -434,7 +399,7 @@ public class Generator {
         try {
             token = AesGcmPw.encrypt(token.getBytes(AesGcmPw.UTF_8), encryptionPw);
         } catch (Exception e) {
-            getLogger().error(DEFAULT_ERR + " generating encrypted Pw: ", e);
+            log.error(DEFAULT_ERR + " generating encrypted Pw: ", e);
         }
         StringBuilder pw = new StringBuilder();
         for (int index : indexes) {
@@ -456,7 +421,7 @@ public class Generator {
         try {
             token = AesGcmPw.encrypt(token.getBytes(AesGcmPw.UTF_8), encryptionPw);
         } catch (Exception e) {
-            getLogger().error(DEFAULT_ERR + " generating encrypted Pw: ", e);
+            log.error(DEFAULT_ERR + " generating encrypted Pw: ", e);
         }
         if (hidden) {
             printHidden(token);
@@ -498,7 +463,7 @@ public class Generator {
             str.append("'").append(arr[i]).append("'");
             str.append((i == arr.length - 1) ? "}" : ", ");
         }
-        getLogger().info(str.toString()); //NOSONAR
+        log.info(str.toString()); //NOSONAR
     }
 
     public void printMultipleRandomPWs(int rangeMin, int rangeMax, int numOfPWs, long pin, boolean anonymous, boolean hidden, String encryptionPw) {
@@ -567,7 +532,7 @@ public class Generator {
         try {
             n = SecureRandom.getInstanceStrong().nextInt(max - min + 1) + min;
         } catch (NoSuchAlgorithmException e) {
-            getLogger().error(DEFAULT_ERR, e);
+            log.error(DEFAULT_ERR, e);
         }
         if (n == -1) {
             throw new IllegalStateException(DEFAULT_ERR + " assigning random number. Random number is -1");
@@ -613,7 +578,7 @@ public class Generator {
             }
             return clearIndexes;
         } catch (Exception e) {
-            getLogger().error("Issue clearing obfuscated Indexes ", e);
+            log.error("Issue clearing obfuscated Indexes ", e);
         }
         return new int[0];
     }
@@ -672,28 +637,6 @@ public class Generator {
         byte[] decodedBytes = d.decode(indexes);
         String decodedString = new String(decodedBytes);
         return parseStringToIntArr(decodedString);
-    }
-
-    // Wrap Console in order to ease testing and for separation of concerns
-    static class ConsoleReader {
-        private final Console c;
-
-        ConsoleReader(Console c) {
-            this.c = c;
-        }
-
-        public ConsoleReader() {
-            this(System.console());
-        }
-
-        public char[] readPassword() {
-            return c.readPassword();
-        }
-
-        public char[] readPassword(String msg) {
-            return c.readPassword(msg);
-        }
-
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -762,6 +705,28 @@ public class Generator {
             }
         }
         return sha3Instance;
+    }
+
+    // Wrap Console in order to ease testing and for separation of concerns
+    static class ConsoleReader {
+        private final Console c;
+
+        ConsoleReader(Console c) {
+            this.c = c;
+        }
+
+        public ConsoleReader() {
+            this(System.console());
+        }
+
+        public char[] readPassword() {
+            return c.readPassword();
+        }
+
+        public char[] readPassword(String msg) {
+            return c.readPassword(msg);
+        }
+
     }
 
 }
